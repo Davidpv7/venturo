@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id // matches Supabase Auth's user ID — not a separately generated UUID
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  interests Interest[]
+  contracts Contract[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Room {
+  id                String     @id @default(uuid())
+  title             String
+  description       String // amenities, deposit info, etc. described manually — listings are short
+  price             Int // stored in cents to avoid float rounding bugs
+  leaseLengthMonths Int // dropdown options enforced in UI, not the DB
+  status            RoomStatus @default(AVAILABLE)
+  address           String
+  pendingSince      DateTime? // set when status flips to PENDING_DEPOSIT, cleared otherwise
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  photos    Photo[]
+  interests Interest[]
+  contracts Contract[]
+}
+
+enum RoomStatus {
+  AVAILABLE
+  PENDING_DEPOSIT
+  RENTED
+  ARCHIVED
+}
+
+model Photo {
+  id     String @id @default(uuid())
+  url    String
+  order  Int    @default(0) // 0 = primary/first photo shown
+  roomId String
+  room   Room   @relation(fields: [roomId], references: [id])
+}
+
+model Interest {
+  id         String    @id @default(uuid())
+  userId     String
+  roomId     String
+  createdAt  DateTime  @default(now())
+  notifiedAt DateTime? // null = not yet emailed
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@unique([userId, roomId]) // one "notify me" per user per room, kept as permanent history
+}
+
+model Contract {
+  id                 String    @id @default(uuid())
+  userId             String
+  roomId             String
+  agreedAt           DateTime  @default(now())
+  contractVersion    String // e.g. "v1.0" — ties signature to a specific T&Cs doc
+  leaseLengthMonths  Int // snapshotted at signing time, independent of the room's current listing
+  depositConfirmed   Boolean   @default(false)
+  depositConfirmedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+}
