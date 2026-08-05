@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Field, inputClasses } from "@/components/ui/field";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -9,45 +11,32 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <div className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-3xl font-bold text-venturo-olive">Log In</h1>
+    <div className="mx-auto flex max-w-sm flex-col px-6 py-16 sm:py-24">
+      <div className="rounded-xl border border-venturo-olive/15 bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Log In</h1>
 
-      {error && (
-        <p className="mt-4 rounded bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      )}
+        {error && (
+          <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            {error}
+          </p>
+        )}
 
-      <form action={login} className="mt-6 flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Email
-          <input
-            name="email"
-            type="email"
-            required
-            className="rounded border border-venturo-olive/30 bg-white px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-medium">
-          Password
-          <input
-            name="password"
-            type="password"
-            required
-            className="rounded border border-venturo-olive/30 bg-white px-3 py-2"
-          />
-        </label>
-        <button
-          type="submit"
-          className="mt-2 rounded bg-venturo-olive px-4 py-2 font-medium text-white"
-        >
-          Log In
-        </button>
-      </form>
+        <form action={login} className="mt-6 flex flex-col gap-4">
+          <Field label="Email">
+            <input name="email" type="email" required className={inputClasses} />
+          </Field>
+          <Field label="Password">
+            <input name="password" type="password" required className={inputClasses} />
+          </Field>
+          <Button type="submit" className="mt-1">
+            Log In
+          </Button>
+        </form>
+      </div>
 
-      <p className="mt-4 text-sm">
+      <p className="mt-6 text-center text-sm text-foreground/70">
         No account yet?{" "}
-        <Link href="/signup" className="text-venturo-olive underline">
+        <Link href="/signup" className="font-medium text-venturo-olive hover:underline">
           Sign up
         </Link>
       </p>

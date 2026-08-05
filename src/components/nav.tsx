@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { logout } from "@/app/actions";
+import { ButtonLink } from "@/components/ui/button";
+import { NavMobileMenu } from "@/components/nav-mobile-menu";
 
 const links = [
   { href: "/", label: "Home" },
@@ -19,34 +21,52 @@ export async function Nav() {
   const dbUser = user
     ? await prisma.user.findUnique({ where: { id: user.id }, select: { role: true } })
     : null;
+  const isAdmin = dbUser?.role === "ADMIN";
 
   return (
-    <header className="border-b border-venturo-olive/20 bg-venturo-cream">
-      <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-bold tracking-tight text-venturo-olive">
+    <header className="sticky top-0 z-20 border-b border-venturo-olive/15 bg-venturo-cream/95 backdrop-blur supports-[backdrop-filter]:bg-venturo-cream/80">
+      <div className="relative mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+        <Link href="/" className="text-lg font-semibold tracking-tight text-venturo-olive">
           Venturo
         </Link>
-        <ul className="flex items-center gap-6 text-sm font-medium">
+
+        <ul className="hidden items-center gap-8 text-sm font-medium sm:flex">
           {links.map((link) => (
             <li key={link.href}>
-              <Link href={link.href} className="hover:text-venturo-olive">
+              <Link
+                href={link.href}
+                className="text-foreground/80 transition-colors hover:text-venturo-olive"
+              >
                 {link.label}
               </Link>
             </li>
           ))}
+          {isAdmin && (
+            <li>
+              <Link
+                href="/admin"
+                className="rounded-full bg-venturo-olive/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-venturo-olive"
+              >
+                Admin
+              </Link>
+            </li>
+          )}
           {user ? (
             <>
-              {dbUser?.role === "ADMIN" && (
-                <li>
-                  <Link href="/admin" className="hover:text-venturo-olive">
-                    Admin
-                  </Link>
-                </li>
-              )}
-              <li className="text-foreground/60">{user.email}</li>
+              <li>
+                <Link
+                  href="/account"
+                  className="text-foreground/60 transition-colors hover:text-venturo-olive"
+                >
+                  {user.email}
+                </Link>
+              </li>
               <li>
                 <form action={logout}>
-                  <button type="submit" className="hover:text-venturo-olive">
+                  <button
+                    type="submit"
+                    className="text-foreground/80 transition-colors hover:text-venturo-olive"
+                  >
                     Log out
                   </button>
                 </form>
@@ -54,13 +74,18 @@ export async function Nav() {
             </>
           ) : (
             <li>
-              <Link href="/login" className="hover:text-venturo-olive">
-                Log in
-              </Link>
+              <ButtonLink href="/login">Log in</ButtonLink>
             </li>
           )}
         </ul>
-      </nav>
+
+        <NavMobileMenu
+          links={links}
+          isAdmin={isAdmin}
+          email={user?.email ?? null}
+          onLogout={logout}
+        />
+      </div>
     </header>
   );
 }
