@@ -6,6 +6,7 @@ import { formatWeeklyPrice } from "@/lib/format";
 import { createInterest } from "@/app/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { signContract } from "./actions";
 
 const DEPOSIT_WINDOW_HOURS = 12;
@@ -38,7 +39,6 @@ export default async function RoomDetailPage({
 
   if (!room) notFound();
 
-  const primaryPhoto = room.photos.find((p) => p.order === 0) ?? room.photos[0];
   const myContract = user ? room.contracts?.[0] : undefined;
   const hasInterest = user ? (room.interests?.length ?? 0) > 0 : false;
 
@@ -71,121 +71,128 @@ export default async function RoomDetailPage({
         ← Back to all rooms
       </Link>
 
-      <div className="mt-4 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-start">
-        <div className="aspect-[4/3] overflow-hidden rounded-xl bg-venturo-cream-alt">
-          {primaryPhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={primaryPhoto.url}
-              alt={room.title}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-foreground/40">
-              No photo yet
-            </div>
-          )}
-        </div>
+      <div className="mt-4">
+        <RoomPhotoGallery photos={room.photos} title={room.title} />
+      </div>
 
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            {room.title}
-          </h1>
-          <p className="mt-2 text-foreground/60">{room.address}</p>
-          <p className="mt-4 font-medium text-venturo-olive">
-            {formatWeeklyPrice(room.price)} — {room.leaseLengthMonths} month lease
+      <div className="mt-8 max-w-2xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          {room.title}
+        </h1>
+        <p className="mt-2 text-foreground/60">{room.address}</p>
+        <p className="mt-4 font-medium text-venturo-olive">
+          {formatWeeklyPrice(room.price)} — {room.leaseLengthMonths} month lease
+        </p>
+        <p className="mt-4 line-clamp-2 leading-relaxed text-foreground/80">
+          {room.description}
+        </p>
+
+        {error === "unavailable" && (
+          <p className="mt-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            Someone else just booked this room before you finished signing.
+            Sorry — check the other listings below.
           </p>
-          <p className="mt-4 leading-relaxed text-foreground/80">{room.description}</p>
+        )}
 
-          {error === "unavailable" && (
-            <p className="mt-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
-              Someone else just booked this room before you finished signing.
-              Sorry — check the other listings below.
+        {room.status === "ARCHIVED" && (
+          <p className="mt-6 rounded-md bg-foreground/5 px-3 py-2.5 text-sm text-foreground/60">
+            This listing is no longer available.
+          </p>
+        )}
+
+        {room.status === "AVAILABLE" && (
+          <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5">
+            {user ? (
+              <form action={signContract} className="flex flex-col gap-4">
+                <input type="hidden" name="roomId" value={room.id} />
+                <p className="text-sm leading-relaxed text-foreground/70">
+                  Signing agrees to a {room.leaseLengthMonths}-month lease at{" "}
+                  {formatWeeklyPrice(room.price)}, under contract version v1.0.
+                  (Placeholder terms — the full T&amp;Cs document is still being
+                  written.) The room will be held for you for{" "}
+                  {DEPOSIT_WINDOW_HOURS} hours to complete the deposit.
+                </p>
+                <label className="flex items-center gap-2 text-sm text-foreground/80">
+                  <input
+                    type="checkbox"
+                    required
+                    className="h-4 w-4 accent-venturo-olive"
+                  />
+                  I agree to the lease terms
+                </label>
+                <Button type="submit" className="self-start">
+                  Sign &amp; Rent This Room
+                </Button>
+              </form>
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm text-foreground/70">
+                  Log in to sign the lease and rent this room.
+                </p>
+                <ButtonLink href="/login">Log In</ButtonLink>
+              </div>
+            )}
+          </div>
+        )}
+
+        {room.status === "PENDING_DEPOSIT" && myContract && (
+          <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5 text-sm text-foreground/80">
+            {signed && (
+              <p className="mb-2 font-medium text-venturo-olive">Lease signed!</p>
+            )}
+            <p className="leading-relaxed">
+              Next step: pay the deposit before{" "}
+              <strong>{depositDeadline?.toLocaleString("en-AU")}</strong> (
+              {DEPOSIT_WINDOW_HOURS} hours from signing). Deposits are handled
+              manually — email{" "}
+              <a
+                href="mailto:venturo.coliving@gmail.com"
+                className="text-venturo-olive underline"
+              >
+                venturo.coliving@gmail.com
+              </a>{" "}
+              or call{" "}
+              <a href="tel:0434682864" className="text-venturo-olive underline">
+                0434 682 864
+              </a>{" "}
+              for bank transfer details.
             </p>
-          )}
+          </div>
+        )}
 
-          {room.status === "ARCHIVED" && (
-            <p className="mt-6 rounded-md bg-foreground/5 px-3 py-2.5 text-sm text-foreground/60">
-              This listing is no longer available.
-            </p>
-          )}
+        {room.status === "PENDING_DEPOSIT" && !myContract && (
+          <div className="mt-6 rounded-xl border border-venturo-olive/15 bg-foreground/5 p-5 text-sm text-foreground/70">
+            This room is currently being booked by someone else. Check back
+            later, or browse other listings.
+            {notifyMeBlock}
+          </div>
+        )}
 
-          {room.status === "AVAILABLE" && (
-            <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5">
-              {user ? (
-                <form action={signContract} className="flex flex-col gap-4">
-                  <input type="hidden" name="roomId" value={room.id} />
-                  <p className="text-sm leading-relaxed text-foreground/70">
-                    Signing agrees to a {room.leaseLengthMonths}-month lease at{" "}
-                    {formatWeeklyPrice(room.price)}, under contract version v1.0.
-                    (Placeholder terms — the full T&amp;Cs document is still being
-                    written.) The room will be held for you for{" "}
-                    {DEPOSIT_WINDOW_HOURS} hours to complete the deposit.
-                  </p>
-                  <label className="flex items-center gap-2 text-sm text-foreground/80">
-                    <input
-                      type="checkbox"
-                      required
-                      className="h-4 w-4 accent-venturo-olive"
-                    />
-                    I agree to the lease terms
-                  </label>
-                  <Button type="submit" className="self-start">
-                    Sign &amp; Rent This Room
-                  </Button>
-                </form>
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-foreground/70">
-                    Log in to sign the lease and rent this room.
-                  </p>
-                  <ButtonLink href="/login">Log In</ButtonLink>
-                </div>
-              )}
-            </div>
-          )}
+        {room.status === "RENTED" && (
+          <div className="mt-6 rounded-xl border border-venturo-olive/15 bg-foreground/5 p-5 text-sm text-foreground/70">
+            {myContract?.depositConfirmed
+              ? "You're all set — this lease is confirmed."
+              : "This room is currently rented."}
+            {!myContract?.depositConfirmed && notifyMeBlock}
+          </div>
+        )}
+      </div>
 
-          {room.status === "PENDING_DEPOSIT" && myContract && (
-            <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5 text-sm text-foreground/80">
-              {signed && (
-                <p className="mb-2 font-medium text-venturo-olive">Lease signed!</p>
-              )}
-              <p className="leading-relaxed">
-                Next step: pay the deposit before{" "}
-                <strong>{depositDeadline?.toLocaleString("en-AU")}</strong> (
-                {DEPOSIT_WINDOW_HOURS} hours from signing). Deposits are handled
-                manually — email{" "}
-                <a
-                  href="mailto:venturo.coliving@gmail.com"
-                  className="text-venturo-olive underline"
-                >
-                  venturo.coliving@gmail.com
-                </a>{" "}
-                or call{" "}
-                <a href="tel:0434682864" className="text-venturo-olive underline">
-                  0434 682 864
-                </a>{" "}
-                for bank transfer details.
-              </p>
-            </div>
-          )}
+      <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
+        <h2 className="text-xl font-semibold text-foreground">About this room</h2>
+        <p className="mt-3 leading-relaxed text-foreground/80">{room.description}</p>
+      </div>
 
-          {room.status === "PENDING_DEPOSIT" && !myContract && (
-            <div className="mt-6 rounded-xl border border-venturo-olive/15 bg-foreground/5 p-5 text-sm text-foreground/70">
-              This room is currently being booked by someone else. Check back
-              later, or browse other listings.
-              {notifyMeBlock}
-            </div>
-          )}
-
-          {room.status === "RENTED" && (
-            <div className="mt-6 rounded-xl border border-venturo-olive/15 bg-foreground/5 p-5 text-sm text-foreground/70">
-              {myContract?.depositConfirmed
-                ? "You're all set — this lease is confirmed."
-                : "This room is currently rented."}
-              {!myContract?.depositConfirmed && notifyMeBlock}
-            </div>
-          )}
+      <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
+        <h2 className="text-xl font-semibold text-foreground">Location</h2>
+        <p className="mt-2 text-foreground/60">{room.address}</p>
+        <div className="mt-4 overflow-hidden rounded-xl border border-venturo-olive/25">
+          <iframe
+            src={`https://www.google.com/maps?q=${encodeURIComponent(room.address)}&output=embed`}
+            className="h-72 w-full border-0"
+            loading="lazy"
+            title={`Map of ${room.address}`}
+          />
         </div>
       </div>
     </Container>

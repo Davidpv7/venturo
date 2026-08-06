@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
-import { RoomCard } from "@/components/room-card";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { RoomHeroCarousel, HeroEmptyState } from "@/components/room-hero-carousel";
+import { formatWeeklyPrice } from "@/lib/format";
 
 const features = [
   {
@@ -35,57 +36,72 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const featuredRooms = await prisma.room.findMany({
+  const availableRooms = await prisma.room.findMany({
     where: { status: "AVAILABLE" },
     include: { photos: true },
     orderBy: { createdAt: "desc" },
-    take: 3,
+    take: 8,
   });
 
   return (
     <div>
-      <section className="border-b border-venturo-olive/10">
-        <Container className="py-24 text-center sm:py-32">
-          <h1 className="mx-auto max-w-3xl text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-6xl">
-            Find your next room with{" "}
-            <span className="text-venturo-olive">Venturo</span>
-          </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-foreground/70">
-            Furnished share-house rooms, managed properly, rented simply.
-          </p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <ButtonLink href="/rent-a-room" size="lg">
-              Browse available rooms
-            </ButtonLink>
-            <ButtonLink href="/about" variant="secondary" size="lg">
-              Learn more
-            </ButtonLink>
+      <section className="overflow-hidden border-b border-venturo-olive/10 bg-gradient-to-b from-venturo-cream-alt to-venturo-cream">
+        <Container size="lg" className="py-16 sm:py-24">
+          <div className="max-w-2xl">
+            <p className="text-sm font-medium tracking-wide text-venturo-olive uppercase">
+              Venturo co-living
+            </p>
+            <h1 className="font-display mt-3 text-4xl font-semibold tracking-tight text-balance text-foreground sm:text-5xl">
+              A room that already feels like{" "}
+              <em className="text-venturo-olive italic">home</em>
+            </h1>
+            <p className="mt-4 max-w-xl text-lg text-foreground/70">
+              Furnished, bills included, one point of contact — browse the rooms
+              available right now.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <ButtonLink href="/rent-a-room" size="lg">
+                Browse available rooms
+              </ButtonLink>
+              <ButtonLink href="/about" variant="secondary" size="lg">
+                Learn more
+              </ButtonLink>
+            </div>
+          </div>
+
+          <div className="mt-14">
+            {availableRooms.length > 0 ? (
+              <RoomHeroCarousel rooms={availableRooms} />
+            ) : (
+              <HeroEmptyState />
+            )}
           </div>
         </Container>
       </section>
 
-      <section className="border-b border-venturo-olive/10">
+      <section className="border-b border-venturo-olive/10 bg-venturo-cream-alt/40">
         <Container className="py-16 sm:py-20">
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
-            {features.map((feature) => (
-              <div key={feature.title}>
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-venturo-olive/10 text-venturo-olive">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.75}
-                  >
-                    {feature.icon}
-                  </svg>
-                </div>
-                <h2 className="mt-4 font-semibold text-foreground">{feature.title}</h2>
+          <div className="grid grid-cols-1 divide-y divide-venturo-olive/15 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            {features.map((feature, i) => (
+              <div
+                key={feature.title}
+                className="py-8 first:pt-0 sm:px-8 sm:py-0 sm:first:pl-0 sm:last:pr-0"
+              >
+                <span className="font-display text-3xl text-venturo-olive/30">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="mt-3 h-5 w-5 text-venturo-olive"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.75}
+                >
+                  {feature.icon}
+                </svg>
+                <h2 className="font-display mt-3 text-lg font-semibold text-foreground">
+                  {feature.title}
+                </h2>
                 <p className="mt-2 text-sm leading-relaxed text-foreground/70">
                   {feature.body}
                 </p>
@@ -95,22 +111,58 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {featuredRooms.length > 0 && (
+      {availableRooms.length > 0 && (
         <section>
           <Container className="py-16 sm:py-20">
             <div className="flex items-end justify-between">
-              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground">
                 Available now
               </h2>
               <ButtonLink href="/rent-a-room" variant="secondary">
                 See all rooms
               </ButtonLink>
             </div>
-            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredRooms.map((room) => (
-                <RoomCard key={room.id} room={room} isLoggedIn={!!user} />
-              ))}
-            </div>
+            <ul className="mt-8 divide-y divide-venturo-olive/10 rounded-xl border border-venturo-olive/15 bg-white">
+              {availableRooms.slice(0, 6).map((room) => {
+                const primaryPhoto =
+                  room.photos.find((p) => p.order === 0) ?? room.photos[0];
+                return (
+                  <li key={room.id}>
+                    <Link
+                      href={`/rent-a-room/${room.id}`}
+                      className="flex items-center gap-4 p-4 transition-colors hover:bg-venturo-olive/5"
+                    >
+                      {primaryPhoto ? (
+                        // Plain <img> for now — external placeholder URLs; switch to
+                        // next/image once photos come from Supabase Storage and we can
+                        // allowlist that domain.
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={primaryPhoto.url}
+                          alt={room.title}
+                          className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-venturo-cream-alt text-xs text-foreground/40">
+                          No photo
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-foreground">
+                          {room.title}
+                        </p>
+                        <p className="truncate text-sm text-foreground/60">
+                          {room.address}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-medium text-venturo-olive">
+                        {formatWeeklyPrice(room.price)}
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
           </Container>
         </section>
       )}
