@@ -40,9 +40,10 @@ No test suite exists yet.
 - `src/lib/require-admin.ts` — auth/role guard. Server Actions are directly
   callable once deployed, so admin checks must run inside the action itself,
   not just be inferred from what the UI renders.
-- `src/generated/prisma/` — generated Prisma client, committed like normal
-  source since there's no build step that regenerates it in this setup. Never
-  hand-edit; run `npx prisma generate` after schema changes instead.
+- `src/generated/prisma/` — generated Prisma client, gitignored and
+  regenerated automatically via the `postinstall` script (`prisma generate`),
+  which also runs on Vercel before `next build`. Never hand-edit; run
+  `npx prisma generate` locally after schema changes to refresh it.
 - `prisma/schema.prisma` — source of truth for the data model
   (User/Room/Photo/Interest/Contract). `User.id` matches the Supabase Auth
   user ID directly rather than a separately generated UUID.
