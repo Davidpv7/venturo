@@ -24,6 +24,18 @@ enum Role {
   ADMIN
 }
 
+model Home {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  address     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  photos Photo[]
+  rooms  Room[]
+}
+
 model Room {
   id                String     @id @default(uuid())
   title             String
@@ -31,11 +43,12 @@ model Room {
   price             Int // stored in cents to avoid float rounding bugs
   leaseLengthMonths Int // dropdown options enforced in UI, not the DB
   status            RoomStatus @default(AVAILABLE)
-  address           String
+  homeId            String
   pendingSince      DateTime? // set when status flips to PENDING_DEPOSIT, cleared otherwise
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
+  home      Home       @relation(fields: [homeId], references: [id])
   photos    Photo[]
   interests Interest[]
   contracts Contract[]
@@ -49,11 +62,16 @@ enum RoomStatus {
 }
 
 model Photo {
-  id     String @id @default(uuid())
+  id     String  @id @default(uuid())
   url    String
-  order  Int    @default(0) // 0 = primary/first photo shown
-  roomId String
-  room   Room   @relation(fields: [roomId], references: [id])
+  order  Int     @default(0) // 0 = primary/first photo shown
+  roomId String?
+  homeId String?
+
+  // Exactly one of room/home is set, enforced in app code — photos are
+  // always created via a nested write under Room.photos or Home.photos.
+  room Room? @relation(fields: [roomId], references: [id])
+  home Home? @relation(fields: [homeId], references: [id])
 }
 
 model Interest {

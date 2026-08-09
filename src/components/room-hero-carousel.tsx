@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import type { Photo, Room } from "@/generated/prisma/client";
+import Image from "next/image";
+import type { Home, Photo } from "@/generated/prisma/client";
 import { formatWeeklyPrice } from "@/lib/format";
 
-type RoomWithPhotos = Room & { photos: Photo[] };
+type HomeWithPhotosAndPrice = Home & { photos: Photo[]; rooms: { price: number }[] };
 
 // How far each neighboring card sits from the centered one.
 const OFFSET = "clamp(140px, 26vw, 260px)";
@@ -43,9 +44,9 @@ export function HeroEmptyState() {
   );
 }
 
-export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
+export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] }) {
   const [index, setIndex] = useState(0);
-  const count = rooms.length;
+  const count = homes.length;
   const touchStartX = useRef<number | null>(null);
 
   const next = useCallback(() => {
@@ -88,23 +89,22 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {rooms.map((room, i) => {
+        {homes.map((home, i) => {
           const diff = diffFor(i, index, count);
           const isCenter = diff === 0;
           const isSide = Math.abs(diff) === 1;
-          const primaryPhoto = room.photos.find((p) => p.order === 0) ?? room.photos[0];
+          const primaryPhoto = home.photos.find((p) => p.order === 0) ?? home.photos[0];
 
           const card = (
             <div className="relative h-full w-full overflow-hidden rounded-2xl shadow-lg">
               {primaryPhoto ? (
-                // Plain <img> for now — external placeholder URLs; switch to
-                // next/image once photos come from Supabase Storage and we can
-                // allowlist that domain.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={primaryPhoto.url}
-                  alt={room.title}
-                  className="h-full w-full object-cover"
+                  alt={home.name}
+                  fill
+                  sizes="(min-width: 640px) 420px, 80vw"
+                  className="object-cover"
+                  priority={isCenter}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center bg-venturo-cream-alt text-sm text-foreground/40">
@@ -112,12 +112,14 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
                 </div>
               )}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-5">
-                <p className="font-display text-lg font-semibold text-white">{room.title}</p>
+                <p className="font-display text-lg font-semibold text-white">{home.name}</p>
                 <div className="mt-1 flex items-center justify-between gap-3 text-sm text-white/80">
-                  <span className="truncate">{room.address}</span>
-                  <span className="shrink-0 font-medium text-white">
-                    {formatWeeklyPrice(room.price)}
-                  </span>
+                  <span className="truncate">{home.address}</span>
+                  {home.rooms[0] && (
+                    <span className="shrink-0 font-medium text-white">
+                      from {formatWeeklyPrice(home.rooms[0].price)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -125,7 +127,7 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
 
           return (
             <div
-              key={room.id}
+              key={home.id}
               style={cardStyle(diff)}
               className={`absolute top-1/2 left-1/2 aspect-[4/5] w-[85vw] transition-all duration-500 ease-out sm:aspect-[16/10] sm:w-[min(560px,60vw)] ${
                 isCenter ? "" : "hidden sm:block"
@@ -133,8 +135,8 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
             >
               {isCenter ? (
                 <Link
-                  href={`/rent-a-room/${room.id}`}
-                  aria-label={`View ${room.title}`}
+                  href={`/rent-a-room/${home.id}`}
+                  aria-label={`View ${home.name}`}
                   className="block h-full w-full"
                 >
                   {card}
@@ -143,7 +145,7 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
                 <button
                   type="button"
                   onClick={() => setIndex(i)}
-                  aria-label={`Show ${room.title}`}
+                  aria-label={`Show ${home.name}`}
                   className="block h-full w-full cursor-pointer"
                 >
                   {card}
@@ -160,7 +162,7 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
             <button
               type="button"
               onClick={prev}
-              aria-label="Previous room"
+              aria-label="Previous home"
               className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:left-4 sm:h-11 sm:w-11"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -170,7 +172,7 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
             <button
               type="button"
               onClick={next}
-              aria-label="Next room"
+              aria-label="Next home"
               className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:right-4 sm:h-11 sm:w-11"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -181,18 +183,18 @@ export function RoomHeroCarousel({ rooms }: { rooms: RoomWithPhotos[] }) {
         )}
 
         <p className="sr-only" aria-live="polite">
-          Room {index + 1} of {count}
+          Home {index + 1} of {count}
         </p>
       </div>
 
       {count > 1 && (
         <div className="mt-5 flex justify-center gap-2">
-          {rooms.map((room, i) => (
+          {homes.map((home, i) => (
             <button
-              key={room.id}
+              key={home.id}
               type="button"
               onClick={() => setIndex(i)}
-              aria-label={`Go to room ${i + 1}`}
+              aria-label={`Go to home ${i + 1}`}
               className={`h-1.5 rounded-full transition-all ${
                 i === index ? "w-4 bg-venturo-olive" : "w-1.5 bg-venturo-olive/25"
               }`}

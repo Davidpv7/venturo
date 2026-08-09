@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
 import { updateName } from "./actions";
-import type { Contract, Room } from "@/generated/prisma/client";
+import type { Contract, Home, Room } from "@/generated/prisma/client";
 
-function contractStatus(contract: Contract & { room: Room }) {
+function contractStatus(contract: Contract & { room: Room & { home: Home } }) {
   if (contract.depositConfirmed) {
     return { label: "Deposit confirmed", badge: "bg-venturo-olive/10 text-venturo-olive" };
   }
@@ -33,7 +33,7 @@ export default async function AccountPage() {
   const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
   const contracts = await prisma.contract.findMany({
     where: { userId: user.id },
-    include: { room: true },
+    include: { room: { include: { home: true } } },
     orderBy: { agreedAt: "desc" },
   });
 
@@ -83,12 +83,12 @@ export default async function AccountPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <Link
-                        href={`/rent-a-room/${contract.roomId}`}
+                        href={`/rent-a-room/${contract.room.homeId}/${contract.roomId}`}
                         className="font-medium text-foreground hover:text-venturo-olive"
                       >
                         {contract.room.title}
                       </Link>
-                      <p className="text-foreground/60">{contract.room.address}</p>
+                      <p className="text-foreground/60">{contract.room.home.address}</p>
                     </div>
                     <span
                       className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${status.badge}`}

@@ -5,10 +5,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { Prisma } from "@/generated/prisma/client";
 
-function revalidateRoomPaths(roomId: string) {
+export async function revalidateRoomPaths() {
   revalidatePath("/admin");
-  revalidatePath(`/rent-a-room/${roomId}`);
-  revalidatePath("/rent-a-room");
+  revalidatePath("/rent-a-room", "layout");
   revalidatePath("/", "layout");
 }
 
@@ -64,7 +63,7 @@ export async function confirmDeposit(formData: FormData) {
     });
   });
 
-  revalidateRoomPaths(roomId);
+  revalidateRoomPaths();
 }
 
 export async function releaseRoom(formData: FormData) {
@@ -85,7 +84,7 @@ export async function releaseRoom(formData: FormData) {
     }
   });
 
-  revalidateRoomPaths(roomId);
+  revalidateRoomPaths();
 }
 
 export async function markRoomAvailable(formData: FormData) {
@@ -105,7 +104,7 @@ export async function markRoomAvailable(formData: FormData) {
     }
   });
 
-  revalidateRoomPaths(roomId);
+  revalidateRoomPaths();
 }
 
 export async function archiveRoom(formData: FormData) {
@@ -119,5 +118,15 @@ export async function archiveRoom(formData: FormData) {
     data: { status: "ARCHIVED" },
   });
 
-  revalidateRoomPaths(roomId);
+  revalidateRoomPaths();
+}
+
+export async function setUserRole(formData: FormData) {
+  await requireAdmin();
+  const userId = formData.get("userId") as string;
+  const role = formData.get("role") as "ADMIN" | "USER";
+
+  await prisma.user.update({ where: { id: userId }, data: { role } });
+
+  revalidatePath("/admin");
 }

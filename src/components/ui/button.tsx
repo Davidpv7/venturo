@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, LabelHTMLAttributes } from "react";
 
 export type ButtonVariant = "primary" | "secondary";
 export type ButtonSize = "sm" | "md" | "lg";
@@ -38,6 +38,21 @@ export function Button({
   size?: ButtonSize;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button className={buttonClasses(variant, size, className)} {...props} />;
+}
+
+// For triggering a hidden native control (e.g. a file input) that a real
+// <button> can't be nested inside a <label> for cleanly — clicking the
+// label delegates to the control it's `htmlFor`, no JS required.
+export function ButtonLabel({
+  variant = "primary",
+  size = "md",
+  className,
+  ...props
+}: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+} & LabelHTMLAttributes<HTMLLabelElement>) {
+  return <label className={buttonClasses(variant, size, className)} {...props} />;
 }
 
 // For navigational buttons styled the same way (Next.js Link, not <a>, so

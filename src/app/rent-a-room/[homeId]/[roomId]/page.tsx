@@ -15,10 +15,10 @@ export default async function RoomDetailPage({
   params,
   searchParams,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ homeId: string; roomId: string }>;
   searchParams: Promise<{ signed?: string; error?: string }>;
 }) {
-  const { id } = await params;
+  const { homeId, roomId: id } = await params;
   const { signed, error } = await searchParams;
 
   const supabase = await createClient();
@@ -30,6 +30,7 @@ export default async function RoomDetailPage({
     where: { id },
     include: {
       photos: true,
+      home: true,
       contracts: user
         ? { where: { userId: user.id }, orderBy: { agreedAt: "desc" }, take: 1 }
         : false,
@@ -37,7 +38,7 @@ export default async function RoomDetailPage({
     },
   });
 
-  if (!room) notFound();
+  if (!room || room.homeId !== homeId) notFound();
 
   const myContract = user ? room.contracts?.[0] : undefined;
   const hasInterest = user ? (room.interests?.length ?? 0) > 0 : false;
@@ -65,10 +66,10 @@ export default async function RoomDetailPage({
   return (
     <Container className="py-16 sm:py-20">
       <Link
-        href="/rent-a-room"
+        href={`/rent-a-room/${homeId}`}
         className="text-sm text-foreground/60 hover:text-venturo-olive"
       >
-        ← Back to all rooms
+        ← Back to {room.home.name}
       </Link>
 
       <div className="mt-4">
@@ -79,7 +80,7 @@ export default async function RoomDetailPage({
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {room.title}
         </h1>
-        <p className="mt-2 text-foreground/60">{room.address}</p>
+        <p className="mt-2 text-foreground/60">Part of {room.home.name}</p>
         <p className="mt-4 font-medium text-venturo-olive">
           {formatWeeklyPrice(room.price)} — {room.leaseLengthMonths} month lease
         </p>
@@ -105,6 +106,7 @@ export default async function RoomDetailPage({
             {user ? (
               <form action={signContract} className="flex flex-col gap-4">
                 <input type="hidden" name="roomId" value={room.id} />
+                <input type="hidden" name="homeId" value={homeId} />
                 <p className="text-sm leading-relaxed text-foreground/70">
                   Signing agrees to a {room.leaseLengthMonths}-month lease at{" "}
                   {formatWeeklyPrice(room.price)}, under contract version v1.0.
@@ -181,19 +183,6 @@ export default async function RoomDetailPage({
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
         <h2 className="text-xl font-semibold text-foreground">About this room</h2>
         <p className="mt-3 leading-relaxed text-foreground/80">{room.description}</p>
-      </div>
-
-      <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
-        <h2 className="text-xl font-semibold text-foreground">Location</h2>
-        <p className="mt-2 text-foreground/60">{room.address}</p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-venturo-olive/25">
-          <iframe
-            src={`https://www.google.com/maps?q=${encodeURIComponent(room.address)}&output=embed`}
-            className="h-72 w-full border-0"
-            loading="lazy"
-            title={`Map of ${room.address}`}
-          />
-        </div>
       </div>
     </Container>
   );

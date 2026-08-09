@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { prisma } from "@/lib/prisma";
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -36,9 +37,17 @@ const features = [
 ];
 
 export default async function HomePage() {
-  const availableRooms = await prisma.room.findMany({
-    where: { status: "AVAILABLE" },
-    include: { photos: true },
+  const homes = await prisma.home.findMany({
+    where: { rooms: { some: { status: "AVAILABLE" } } },
+    include: {
+      photos: true,
+      rooms: {
+        where: { status: "AVAILABLE" },
+        orderBy: { price: "asc" },
+        take: 1,
+        select: { price: true },
+      },
+    },
     orderBy: { createdAt: "desc" },
     take: 8,
   });
@@ -70,8 +79,8 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-14">
-            {availableRooms.length > 0 ? (
-              <RoomHeroCarousel rooms={availableRooms} />
+            {homes.length > 0 ? (
+              <RoomHeroCarousel homes={homes} />
             ) : (
               <HeroEmptyState />
             )}
@@ -111,7 +120,7 @@ export default async function HomePage() {
         </Container>
       </section>
 
-      {availableRooms.length > 0 && (
+      {homes.length > 0 && (
         <section>
           <Container className="py-16 sm:py-20">
             <div className="flex items-end justify-between">
@@ -123,23 +132,21 @@ export default async function HomePage() {
               </ButtonLink>
             </div>
             <ul className="mt-8 divide-y divide-venturo-olive/10 rounded-xl border border-venturo-olive/15 bg-white">
-              {availableRooms.slice(0, 6).map((room) => {
+              {homes.slice(0, 6).map((home) => {
                 const primaryPhoto =
-                  room.photos.find((p) => p.order === 0) ?? room.photos[0];
+                  home.photos.find((p) => p.order === 0) ?? home.photos[0];
                 return (
-                  <li key={room.id}>
+                  <li key={home.id}>
                     <Link
-                      href={`/rent-a-room/${room.id}`}
+                      href={`/rent-a-room/${home.id}`}
                       className="flex items-center gap-4 p-4 transition-colors hover:bg-venturo-olive/5"
                     >
                       {primaryPhoto ? (
-                        // Plain <img> for now — external placeholder URLs; switch to
-                        // next/image once photos come from Supabase Storage and we can
-                        // allowlist that domain.
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           src={primaryPhoto.url}
-                          alt={room.title}
+                          alt={home.name}
+                          width={64}
+                          height={64}
                           className="h-16 w-16 shrink-0 rounded-lg object-cover"
                         />
                       ) : (
@@ -149,15 +156,17 @@ export default async function HomePage() {
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">
-                          {room.title}
+                          {home.name}
                         </p>
                         <p className="truncate text-sm text-foreground/60">
-                          {room.address}
+                          {home.address}
                         </p>
                       </div>
-                      <span className="shrink-0 font-medium text-venturo-olive">
-                        {formatWeeklyPrice(room.price)}
-                      </span>
+                      {home.rooms[0] && (
+                        <span className="shrink-0 font-medium text-venturo-olive">
+                          from {formatWeeklyPrice(home.rooms[0].price)}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 );

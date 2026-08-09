@@ -32,7 +32,6 @@ export async function createInterest(formData: FormData) {
     update: {},
   });
 
-  revalidatePath(`/rent-a-room/${roomId}`);
-  revalidatePath("/rent-a-room");
+  revalidatePath("/rent-a-room", "layout");
   revalidatePath("/", "layout");
 }

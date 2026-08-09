@@ -12,6 +12,7 @@ const CONTRACT_VERSION = "v1.0";
 
 export async function signContract(formData: FormData) {
   const roomId = formData.get("roomId") as string;
+  const homeId = formData.get("homeId") as string;
 
   const supabase = await createClient();
   const {
@@ -48,13 +49,14 @@ export async function signContract(formData: FormData) {
     });
   });
 
-  revalidatePath(`/rent-a-room/${roomId}`);
+  revalidatePath(`/rent-a-room/${homeId}/${roomId}`);
+  revalidatePath(`/rent-a-room/${homeId}`);
   revalidatePath("/rent-a-room");
   revalidatePath("/", "layout");
 
   if (!contract) {
-    redirect(`/rent-a-room/${roomId}?error=unavailable`);
+    redirect(`/rent-a-room/${homeId}/${roomId}?error=unavailable`);
   }
 
-  redirect(`/rent-a-room/${roomId}?signed=1`);
+  redirect(`/rent-a-room/${homeId}/${roomId}?signed=1`);
 }

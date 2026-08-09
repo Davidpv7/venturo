@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { Photo } from "@/generated/prisma/client";
 
 export function RoomPhotoGallery({
@@ -26,12 +27,14 @@ export function RoomPhotoGallery({
 
   return (
     <div>
-      <div className="aspect-[16/10] overflow-hidden rounded-xl bg-venturo-cream-alt">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+      <div className="relative aspect-[16/10] overflow-hidden rounded-xl bg-venturo-cream-alt">
+        <Image
           src={active.url}
           alt={title}
-          className="h-full w-full object-cover"
+          fill
+          sizes="(min-width: 1024px) 768px, 100vw"
+          className="object-cover"
+          priority
         />
       </div>
 
@@ -44,18 +47,13 @@ export function RoomPhotoGallery({
               onClick={() => setActiveIndex(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-current={i === activeIndex}
-              className={`aspect-square w-16 shrink-0 overflow-hidden rounded-lg sm:w-20 ${
+              className={`relative aspect-square w-16 shrink-0 overflow-hidden rounded-lg sm:w-20 ${
                 i === activeIndex
                   ? "ring-2 ring-venturo-olive"
                   : "opacity-70 hover:opacity-100"
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photo.url}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <Image src={photo.url} alt="" fill sizes="80px" className="object-cover" />
             </button>
           ))}
         </div>

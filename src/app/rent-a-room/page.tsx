@@ -1,20 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
-import { RoomCard } from "@/components/room-card";
+import { HomeCard } from "@/components/home-card";
 import { Container } from "@/components/ui/container";
 
 export default async function RentARoomPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const rooms = await prisma.room.findMany({
-    where: { status: { not: "ARCHIVED" } },
-    include: {
-      photos: true,
-      interests: user ? { where: { userId: user.id } } : false,
-    },
+  const homes = await prisma.home.findMany({
+    include: { photos: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -24,18 +14,17 @@ export default async function RentARoomPage() {
         Rent a Room
       </h1>
       <p className="mt-3 max-w-xl text-foreground/70">
-        Browse current listings below. Rooms marked unavailable are already
-        rented, but you can ask to be notified if one opens back up.
+        Browse our homes below, then pick the room inside that suits you.
       </p>
 
-      {rooms.length === 0 ? (
+      {homes.length === 0 ? (
         <p className="mt-10 text-foreground/60">
-          No rooms listed right now — check back soon.
+          No homes listed right now — check back soon.
         </p>
       ) : (
         <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {rooms.map((room) => (
-            <RoomCard key={room.id} room={room} isLoggedIn={!!user} />
+          {homes.map((home) => (
+            <HomeCard key={home.id} home={home} />
           ))}
         </div>
       )}

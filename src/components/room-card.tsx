@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { Interest, Photo, Room } from "@/generated/prisma/client";
 import { formatWeeklyPrice } from "@/lib/format";
 import { createInterest } from "@/app/actions";
@@ -7,9 +8,11 @@ type RoomWithPhotos = Room & { photos: Photo[]; interests?: Interest[] };
 
 export function RoomCard({
   room,
+  homeId,
   isLoggedIn,
 }: {
   room: RoomWithPhotos;
+  homeId: string;
   isLoggedIn: boolean;
 }) {
   const primaryPhoto = room.photos.find((p) => p.order === 0) ?? room.photos[0];
@@ -18,16 +21,14 @@ export function RoomCard({
 
   return (
     <div className="group overflow-hidden rounded-xl border border-venturo-olive/15 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="aspect-video overflow-hidden bg-venturo-cream-alt">
+      <div className="relative aspect-video overflow-hidden bg-venturo-cream-alt">
         {primaryPhoto ? (
-          // Plain <img> for now — external placeholder URLs; switch to
-          // next/image once photos come from Supabase Storage and we can
-          // allowlist that domain.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={primaryPhoto.url}
             alt={room.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-sm text-foreground/40">
@@ -45,7 +46,6 @@ export function RoomCard({
             </span>
           )}
         </div>
-        <p className="text-sm text-foreground/60">{room.address}</p>
         <p className="text-sm text-foreground/80 line-clamp-2">{room.description}</p>
         <div className="mt-1 flex items-center justify-between text-sm">
           <span className="font-medium text-venturo-olive">
@@ -57,7 +57,7 @@ export function RoomCard({
         </div>
 
         {isAvailable ? (
-          <ButtonLink href={`/rent-a-room/${room.id}`} className="mt-3">
+          <ButtonLink href={`/rent-a-room/${homeId}/${room.id}`} className="mt-3">
             See more info
           </ButtonLink>
         ) : hasInterest ? (
