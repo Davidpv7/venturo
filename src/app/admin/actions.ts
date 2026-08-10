@@ -121,6 +121,23 @@ export async function archiveRoom(formData: FormData) {
   revalidateRoomPaths();
 }
 
+export async function unarchiveRoom(formData: FormData) {
+  await requireAdmin();
+  const roomId = formData.get("roomId") as string;
+
+  await prisma.$transaction(async (tx) => {
+    const claim = await tx.room.updateMany({
+      where: { id: roomId, status: "ARCHIVED" },
+      data: { status: "AVAILABLE" },
+    });
+    if (claim.count > 0) {
+      await notifyInterestedUsers(tx, roomId);
+    }
+  });
+
+  revalidateRoomPaths();
+}
+
 export async function setUserRole(formData: FormData) {
   await requireAdmin();
   const userId = formData.get("userId") as string;

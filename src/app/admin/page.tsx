@@ -8,6 +8,7 @@ import {
   confirmDeposit,
   releaseRoom,
   archiveRoom,
+  unarchiveRoom,
   markRoomAvailable,
   setUserRole,
 } from "./actions";
@@ -138,6 +139,14 @@ export default async function AdminPage() {
                                 <input type="hidden" name="roomId" value={room.id} />
                                 <Button type="submit" variant="secondary" size="sm">
                                   Archive
+                                </Button>
+                              </form>
+                            )}
+                            {room.status === "ARCHIVED" && (
+                              <form action={unarchiveRoom}>
+                                <input type="hidden" name="roomId" value={room.id} />
+                                <Button type="submit" size="sm">
+                                  Unarchive
                                 </Button>
                               </form>
                             )}
