@@ -11,7 +11,7 @@ import {
   deleteRoom,
   uploadRoomPhotos,
   deleteRoomPhoto,
-  updateRoomPhotoOrder,
+  reorderRoomPhotos,
 } from "./actions";
 import type { RoomStatus } from "@/generated/prisma/client";
 
@@ -142,7 +142,7 @@ export default async function EditRoomPage({
         parentId={room.id}
         uploadAction={uploadRoomPhotos}
         deleteAction={deleteRoomPhoto}
-        reorderAction={updateRoomPhotoOrder}
+        reorderAction={reorderRoomPhotos}
       />
     </Container>
   );

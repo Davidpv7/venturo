@@ -7,7 +7,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
-import { updateHome, deleteHome, uploadHomePhotos, deleteHomePhoto, updateHomePhotoOrder } from "./actions";
+import { updateHome, deleteHome, uploadHomePhotos, deleteHomePhoto, reorderHomePhotos } from "./actions";
 import type { RoomStatus } from "@/generated/prisma/client";
 
 const statusBadge: Record<RoomStatus, string> = {
@@ -106,7 +106,7 @@ export default async function EditHomePage({
         parentId={home.id}
         uploadAction={uploadHomePhotos}
         deleteAction={deleteHomePhoto}
-        reorderAction={updateHomePhotoOrder}
+        reorderAction={reorderHomePhotos}
       />
 
       <section className="mt-10">

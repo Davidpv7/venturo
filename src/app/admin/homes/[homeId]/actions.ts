@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/app/admin/actions";
-import { uploadPhotos, deletePhoto, updatePhotoOrder } from "@/lib/admin-photos";
+import { uploadPhotos, deletePhoto, reorderPhotos } from "@/lib/admin-photos";
 
 export async function updateHome(formData: FormData) {
   await requireAdmin();
@@ -49,26 +49,24 @@ export async function uploadHomePhotos(formData: FormData) {
   await requireAdmin();
   const homeId = formData.get("homeId") as string;
 
-  await uploadPhotos({ homeId }, formData);
+  const created = await uploadPhotos({ homeId }, formData);
 
   revalidateRoomPaths();
+  return created;
 }
 
-export async function deleteHomePhoto(formData: FormData) {
+export async function deleteHomePhoto(photoId: string) {
   await requireAdmin();
-  const photoId = formData.get("photoId") as string;
 
   await deletePhoto(photoId);
 
   revalidateRoomPaths();
 }
 
-export async function updateHomePhotoOrder(formData: FormData) {
+export async function reorderHomePhotos(homeId: string, orderedPhotoIds: string[]) {
   await requireAdmin();
-  const photoId = formData.get("photoId") as string;
-  const order = Number(formData.get("order"));
 
-  await updatePhotoOrder(photoId, order);
+  await reorderPhotos({ homeId }, orderedPhotoIds);
 
   revalidateRoomPaths();
 }
