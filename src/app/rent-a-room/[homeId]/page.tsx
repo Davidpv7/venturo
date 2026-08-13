@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { RoomCard } from "@/components/room-card";
+import { LocationMap } from "@/components/location-map";
 
 export default async function HomeDetailPage({
   params,
@@ -79,13 +80,8 @@ export default async function HomeDetailPage({
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
         <h2 className="text-xl font-semibold text-foreground">Location</h2>
         <p className="mt-2 text-foreground/60">{home.address}</p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-venturo-olive/25">
-          <iframe
-            src={`https://www.google.com/maps?q=${encodeURIComponent(home.address)}&output=embed`}
-            className="h-72 w-full border-0"
-            loading="lazy"
-            title={`Map of ${home.address}`}
-          />
+        <div className="mt-4">
+          <LocationMap address={home.address} />
         </div>
       </div>
     </Container>

@@ -7,6 +7,7 @@ import { createInterest } from "@/app/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
+import { LocationMap } from "@/components/location-map";
 import { signContract } from "./actions";
 
 const DEPOSIT_WINDOW_HOURS = 12;
@@ -183,6 +184,14 @@ export default async function RoomDetailPage({
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
         <h2 className="text-xl font-semibold text-foreground">About this room</h2>
         <p className="mt-3 leading-relaxed text-foreground/80">{room.description}</p>
+      </div>
+
+      <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
+        <h2 className="text-xl font-semibold text-foreground">Location</h2>
+        <p className="mt-2 text-foreground/60">{room.home.address}</p>
+        <div className="mt-4">
+          <LocationMap address={room.home.address} />
+        </div>
       </div>
     </Container>
   );
