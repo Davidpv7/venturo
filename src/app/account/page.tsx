@@ -1,111 +1,159 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/require-user";
+import { getCurrentContract } from "@/lib/customer-contract";
+import { getLeaseEndDate, getDaysRemaining } from "@/lib/lease";
 import { formatWeeklyPrice } from "@/lib/format";
-import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Field, inputClasses } from "@/components/ui/field";
-import { updateName } from "./actions";
-import type { Contract, Home, Room } from "@/generated/prisma/client";
+import { Card } from "@/components/ui/card";
+import type { ChecklistItem } from "@/generated/prisma/client";
 
-function contractStatus(contract: Contract & { room: Room & { home: Home } }) {
-  if (contract.depositConfirmed) {
-    return { label: "Deposit confirmed", badge: "bg-venturo-olive/10 text-venturo-olive" };
-  }
-  // Approximation: only the most recently created PENDING_DEPOSIT contract
-  // on a room is ever "live" (enforced by the signing transaction), so a
-  // room currently pending + an unconfirmed contract means this is it.
-  if (contract.room.status === "PENDING_DEPOSIT") {
-    return { label: "Awaiting deposit", badge: "bg-foreground/10 text-foreground/70" };
-  }
-  return { label: "Not completed", badge: "bg-foreground/5 text-foreground/40" };
+function ChecklistGroup({ title, items }: { title: string; items: ChecklistItem[] }) {
+  if (items.length === 0) return null;
+
+  return (
+    <div>
+      <h3 className="text-sm font-medium text-foreground/70">{title}</h3>
+      <ul className="mt-2 flex flex-col gap-1.5">
+        {items.map((item) => (
+          <li key={item.id} className="flex items-center gap-2 text-sm">
+            <span
+              className={[
+                "flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px]",
+                item.completed
+                  ? "bg-venturo-olive text-white"
+                  : "border border-foreground/25 text-transparent",
+              ].join(" ")}
+            >
+              ✓
+            </span>
+            <span className={item.completed ? "text-foreground/60 line-through" : "text-foreground"}>
+              {item.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
-export default async function AccountPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default async function MyStayPage() {
+  const dbUser = await requireUser();
+  const contract = await getCurrentContract(dbUser.id);
 
-  if (!user) redirect("/login");
+  if (!contract) {
+    return (
+      <Container size="sm" className="py-16 sm:py-20">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          My Stay
+        </h1>
+        <p className="mt-4 text-sm text-foreground/60">
+          You don&apos;t have a lease yet —{" "}
+          <Link href="/rent-a-room" className="font-medium text-venturo-olive hover:underline">
+            browse available rooms
+          </Link>
+          .
+        </p>
+      </Container>
+    );
+  }
 
-  const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
-  const contracts = await prisma.contract.findMany({
-    where: { userId: user.id },
-    include: { room: { include: { home: true } } },
-    orderBy: { agreedAt: "desc" },
+  const { room } = contract;
+  const { home } = room;
+  const endDate = getLeaseEndDate(contract.agreedAt, contract.leaseLengthMonths);
+  const daysRemaining = getDaysRemaining(endDate);
+
+  const houseRules = await prisma.document.findFirst({
+    where: { type: "HOUSE_RULES" },
+    orderBy: { createdAt: "desc" },
   });
+
+  const moveInItems = contract.checklistItems.filter((item) => item.stage === "MOVE_IN");
+  const moveOutItems = contract.checklistItems.filter((item) => item.stage === "MOVE_OUT");
 
   return (
     <Container size="sm" className="py-16 sm:py-20">
       <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-        My Account
+        My Stay
       </h1>
-      <p className="mt-2 text-foreground/60">{dbUser.email}</p>
 
-      <section className="mt-8 rounded-xl border border-venturo-olive/20 bg-white p-6 shadow-sm">
-        <h2 className="font-semibold text-foreground">Profile</h2>
-        <form action={updateName} className="mt-4 flex flex-wrap items-end gap-3">
-          <div className="min-w-[12rem] flex-1">
-            <Field label="Name">
-              <input
-                name="name"
-                type="text"
-                defaultValue={dbUser.name ?? ""}
-                className={inputClasses}
-              />
-            </Field>
+      <Card className="mt-8">
+        <h2 className="font-semibold text-foreground">{room.title}</h2>
+        <p className="text-foreground/60">{home.address}</p>
+        <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="text-foreground/50">Rent</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {formatWeeklyPrice(contract.overridePriceCents ?? room.price)}
+            </dd>
           </div>
-          <Button type="submit">Save</Button>
-        </form>
-      </section>
+          <div>
+            <dt className="text-foreground/50">Lease started</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {contract.agreedAt.toLocaleDateString("en-AU")}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-foreground/50">Lease ends</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {endDate.toLocaleDateString("en-AU")}
+            </dd>
+          </div>
+          <div className="col-span-2 sm:col-span-3">
+            <dt className="text-foreground/50">Days remaining</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {daysRemaining > 0 ? `${daysRemaining} days` : "Lease ended"}
+            </dd>
+          </div>
+        </dl>
+      </Card>
 
-      <section className="mt-10">
-        <h2 className="font-semibold text-foreground">My Leases</h2>
-        {contracts.length === 0 ? (
-          <p className="mt-3 text-sm text-foreground/60">
-            No leases yet —{" "}
-            <Link href="/rent-a-room" className="font-medium text-venturo-olive hover:underline">
-              browse available rooms
-            </Link>
-            .
-          </p>
-        ) : (
-          <ul className="mt-4 flex flex-col gap-3">
-            {contracts.map((contract) => {
-              const status = contractStatus(contract);
-              return (
-                <li
-                  key={contract.id}
-                  className="rounded-xl border border-venturo-olive/15 bg-white p-5 text-sm shadow-sm"
+      <Card className="mt-6">
+        <h2 className="font-semibold text-foreground">House Info</h2>
+        <dl className="mt-4 flex flex-col gap-3 text-sm">
+          <div>
+            <dt className="text-foreground/50">WiFi password</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {home.wifiPassword ?? "Ask your house manager"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-foreground/50">Bin day</dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {home.binDay ?? "Ask your house manager"}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-foreground/50">Amenities</dt>
+            <dd className="mt-0.5 whitespace-pre-line text-foreground">{room.description}</dd>
+          </div>
+          <div>
+            <dt className="text-foreground/50">House rules</dt>
+            <dd className="mt-0.5">
+              {houseRules ? (
+                <a
+                  href={houseRules.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-venturo-olive hover:underline"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <Link
-                        href={`/rent-a-room/${contract.room.homeId}/${contract.roomId}`}
-                        className="font-medium text-foreground hover:text-venturo-olive"
-                      >
-                        {contract.room.title}
-                      </Link>
-                      <p className="text-foreground/60">{contract.room.home.address}</p>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${status.badge}`}
-                    >
-                      {status.label}
-                    </span>
-                  </div>
-                  <p className="mt-3 text-foreground/70">
-                    {formatWeeklyPrice(contract.room.price)} — {contract.leaseLengthMonths}{" "}
-                    month lease, signed {contract.agreedAt.toLocaleDateString("en-AU")}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
+                  {houseRules.title}
+                </a>
+              ) : (
+                <span className="text-foreground/60">Not uploaded yet</span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      </Card>
+
+      <Card className="mt-6">
+        <h2 className="font-semibold text-foreground">Move-in / Move-out Checklist</h2>
+        <div className="mt-4 flex flex-col gap-4">
+          <ChecklistGroup title="Move-in" items={moveInItems} />
+          <ChecklistGroup title="Move-out" items={moveOutItems} />
+        </div>
+      </Card>
     </Container>
   );
 }

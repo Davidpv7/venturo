@@ -83,6 +83,23 @@ export default async function EditHomePage({
               className={inputClasses}
             />
           </Field>
+          <Field label="WiFi password">
+            <input
+              name="wifiPassword"
+              type="text"
+              defaultValue={home.wifiPassword ?? ""}
+              className={inputClasses}
+            />
+          </Field>
+          <Field label="Bin day">
+            <input
+              name="binDay"
+              type="text"
+              placeholder="e.g. Tuesday (general), Thursday (recycling)"
+              defaultValue={home.binDay ?? ""}
+              className={inputClasses}
+            />
+          </Field>
           <Button type="submit" className="self-start">
             Save Changes
           </Button>

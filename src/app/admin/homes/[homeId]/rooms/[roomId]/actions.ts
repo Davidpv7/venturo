@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
@@ -133,4 +134,55 @@ export async function reorderRoomPhotos(roomId: string, orderedPhotoIds: string[
   await reorderPhotos({ roomId }, orderedPhotoIds);
 
   revalidateRoomPaths();
+}
+
+function revalidateCustomerAccountPaths() {
+  revalidatePath("/account");
+  revalidatePath("/account/money");
+  revalidatePath("/account/documents");
+}
+
+export async function createInvoice(formData: FormData) {
+  await requireAdmin();
+
+  const contractId = formData.get("contractId") as string;
+  const number = formData.get("number") as string;
+  const amountCents = Math.round(parseFloat(formData.get("amount") as string) * 100);
+  const dueDate = new Date(formData.get("dueDate") as string);
+
+  await prisma.invoice.create({
+    data: { contractId, number, amountCents, dueDate },
+  });
+
+  revalidateCustomerAccountPaths();
+}
+
+export async function markInvoicePaid(formData: FormData) {
+  await requireAdmin();
+
+  const invoiceId = formData.get("invoiceId") as string;
+
+  await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: { status: "PAID", paidAt: new Date() },
+  });
+
+  revalidateCustomerAccountPaths();
+}
+
+export async function toggleChecklistItem(formData: FormData) {
+  await requireAdmin();
+
+  const itemId = formData.get("itemId") as string;
+  const item = await prisma.checklistItem.findUniqueOrThrow({ where: { id: itemId } });
+
+  await prisma.checklistItem.update({
+    where: { id: itemId },
+    data: {
+      completed: !item.completed,
+      completedAt: item.completed ? null : new Date(),
+    },
+  });
+
+  revalidateCustomerAccountPaths();
 }

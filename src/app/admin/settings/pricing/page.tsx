@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
-import { formatCurrency } from "@/lib/format";
+import { formatCurrency, formatFullName } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { inputClasses } from "@/components/ui/field";
@@ -103,7 +103,7 @@ export default async function AdminPricingPage() {
                   <tr key={contract.id} className="border-b border-venturo-olive/10 align-top last:border-b-0">
                     <td className="px-5 py-4">
                       <div className="font-medium text-foreground">
-                        {contract.user.name ?? contract.user.email}
+                        {formatFullName(contract.user) ?? contract.user.email}
                       </div>
                       <div className="text-xs text-foreground/50">{contract.user.email}</div>
                     </td>

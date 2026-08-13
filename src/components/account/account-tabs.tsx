@@ -4,21 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/homes", label: "Homes" },
-  { href: "/admin/users", label: "Users" },
-  { href: "/admin/messages", label: "Messages" },
-  { href: "/admin/documents", label: "Documents" },
-  { href: "/admin/announcements", label: "Announcements" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/account", label: "My Stay" },
+  { href: "/account/money", label: "My Money" },
+  { href: "/account/documents", label: "Documents" },
+  { href: "/account/announcements", label: "Announcements" },
+  { href: "/account/profile", label: "Account" },
 ];
 
 function isActive(pathname: string, href: string) {
-  if (href === "/admin") return pathname === "/admin";
+  if (href === "/account") return pathname === "/account";
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function AdminSidebar({ unreadMessageCount = 0 }: { unreadMessageCount?: number }) {
+export function AccountTabs() {
   const pathname = usePathname();
 
   return (
@@ -26,7 +24,6 @@ export function AdminSidebar({ unreadMessageCount = 0 }: { unreadMessageCount?: 
       <ul className="flex gap-1 overflow-x-auto px-4 py-3 text-sm sm:flex-col sm:gap-0.5 sm:px-3 sm:py-6">
         {NAV_LINKS.map((link) => {
           const active = isActive(pathname, link.href);
-          const badge = link.href === "/admin/messages" && unreadMessageCount > 0 ? unreadMessageCount : null;
           return (
             <li key={link.href} className="shrink-0 sm:shrink">
               <Link
@@ -39,11 +36,6 @@ export function AdminSidebar({ unreadMessageCount = 0 }: { unreadMessageCount?: 
                 ].join(" ")}
               >
                 {link.label}
-                {badge !== null && (
-                  <span className="rounded-full bg-venturo-olive px-1.5 py-0.5 text-xs font-semibold text-white">
-                    {badge}
-                  </span>
-                )}
               </Link>
             </li>
           );

@@ -10,6 +10,18 @@ import { prisma } from "@/lib/prisma";
 // future versions can change without rewriting history.
 const CONTRACT_VERSION = "v1.0";
 
+const MOVE_IN_CHECKLIST_ITEMS = [
+  "Keys handed over",
+  "Welcome pack & house rules reviewed",
+  "Utilities & WiFi confirmed",
+];
+
+const MOVE_OUT_CHECKLIST_ITEMS = [
+  "Final inspection completed",
+  "Keys returned",
+  "Deposit refunded",
+];
+
 export async function signContract(formData: FormData) {
   const roomId = formData.get("roomId") as string;
   const homeId = formData.get("homeId") as string;
@@ -39,7 +51,7 @@ export async function signContract(formData: FormData) {
 
     const room = await tx.room.findUniqueOrThrow({ where: { id: roomId } });
 
-    return tx.contract.create({
+    const newContract = await tx.contract.create({
       data: {
         userId: user.id,
         roomId,
@@ -47,6 +59,23 @@ export async function signContract(formData: FormData) {
         leaseLengthMonths: room.leaseLengthMonths,
       },
     });
+
+    await tx.checklistItem.createMany({
+      data: [
+        ...MOVE_IN_CHECKLIST_ITEMS.map((label) => ({
+          contractId: newContract.id,
+          stage: "MOVE_IN" as const,
+          label,
+        })),
+        ...MOVE_OUT_CHECKLIST_ITEMS.map((label) => ({
+          contractId: newContract.id,
+          stage: "MOVE_OUT" as const,
+          label,
+        })),
+      ],
+    });
+
+    return newContract;
   });
 
   revalidatePath(`/rent-a-room/${homeId}/${roomId}`);

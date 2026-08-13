@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { formatFullName } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { setUserRole } from "./actions";
@@ -30,7 +31,7 @@ export default async function AdminUsersPage() {
             {users.map((user) => (
               <tr key={user.id} className="border-b border-venturo-olive/10 last:border-b-0">
                 <td className="px-5 py-3 text-foreground">{user.email}</td>
-                <td className="px-5 py-3 text-foreground/70">{user.name ?? "—"}</td>
+                <td className="px-5 py-3 text-foreground/70">{formatFullName(user) ?? "—"}</td>
                 <td className="px-5 py-3">
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-medium ${

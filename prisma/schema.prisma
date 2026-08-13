@@ -8,12 +8,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id // matches Supabase Auth's user ID — not a separately generated UUID
-  email     String   @unique
-  name      String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                    String   @id // matches Supabase Auth's user ID — not a separately generated UUID
+  email                 String   @unique
+  name                  String? // first name — set at signup; also the only name column that predates lastName
+  lastName              String?
+  phone                 String?
+  role                  Role     @default(USER)
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  notifyEmailUpdates    Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   interests Interest[]
   contracts Contract[]
@@ -25,16 +30,19 @@ enum Role {
 }
 
 model Home {
-  id          String   @id @default(uuid())
-  name        String
-  description String
-  address     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
+  id           String    @id @default(uuid())
+  name         String
+  description  String
+  address      String
+  wifiPassword String?
+  binDay       String? // free text, e.g. "Tuesday (general), Thursday (recycling)"
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
-  photos Photo[]
-  rooms  Room[]
+  photos        Photo[]
+  rooms         Room[]
+  announcements Announcement[]
 }
 
 model Room {
@@ -100,8 +108,57 @@ model Contract {
   depositConfirmedAt DateTime?
   overridePriceCents Int? // per-tenant negotiated deal; null = use Room.price as normal
 
-  user User @relation(fields: [userId], references: [id])
-  room Room @relation(fields: [roomId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+  room           Room            @relation(fields: [roomId], references: [id])
+  invoices       Invoice[]
+  checklistItems ChecklistItem[]
+}
+
+enum InvoiceStatus {
+  UPCOMING
+  PAID
+  // No stored OVERDUE — that's derived at display time from an UPCOMING
+  // invoice whose dueDate has passed (see src/lib/invoices.ts), so nobody
+  // has to remember to flip a status.
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  contractId  String
+  number      String // admin-entered, e.g. "INV-0001"
+  amountCents Int
+  dueDate     DateTime
+  status      InvoiceStatus @default(UPCOMING)
+  paidAt      DateTime?
+  createdAt   DateTime      @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id])
+}
+
+enum ChecklistStage {
+  MOVE_IN
+  MOVE_OUT
+}
+
+model ChecklistItem {
+  id          String         @id @default(uuid())
+  contractId  String
+  stage       ChecklistStage
+  label       String
+  completed   Boolean        @default(false)
+  completedAt DateTime?
+
+  contract Contract @relation(fields: [contractId], references: [id])
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  homeId    String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  home Home @relation(fields: [homeId], references: [id])
 }
 
 enum DocumentType {

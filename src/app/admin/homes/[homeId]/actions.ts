@@ -13,10 +13,18 @@ export async function updateHome(formData: FormData) {
   const name = formData.get("name") as string;
   const description = formData.get("description") as string;
   const address = formData.get("address") as string;
+  const wifiPassword = (formData.get("wifiPassword") as string).trim();
+  const binDay = (formData.get("binDay") as string).trim();
 
   await prisma.home.update({
     where: { id: homeId },
-    data: { name, description, address },
+    data: {
+      name,
+      description,
+      address,
+      wifiPassword: wifiPassword || null,
+      binDay: binDay || null,
+    },
   });
 
   revalidateRoomPaths();
