@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
+import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import {
   updateRoom,
   deleteRoom,
@@ -13,14 +14,6 @@ import {
   deleteRoomPhoto,
   reorderRoomPhotos,
 } from "./actions";
-import type { RoomStatus } from "@/generated/prisma/client";
-
-const statusBadge: Record<RoomStatus, string> = {
-  AVAILABLE: "bg-venturo-olive/10 text-venturo-olive",
-  PENDING_DEPOSIT: "bg-red-50 text-red-700",
-  RENTED: "bg-foreground/80 text-white",
-  ARCHIVED: "bg-foreground/5 text-foreground/40",
-};
 
 const deleteErrors: Record<string, string> = {
   "has-history":
@@ -38,8 +31,8 @@ export default async function EditRoomPage({
   const { homeId, roomId } = await params;
   const { error } = await searchParams;
 
-  const room = await prisma.room.findUnique({
-    where: { id: roomId },
+  const room = await prisma.room.findFirst({
+    where: { id: roomId, deletedAt: null },
     include: { home: true, photos: true },
   });
 
@@ -58,16 +51,12 @@ export default async function EditRoomPage({
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {room.title}
         </h1>
-        <span
-          className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadge[room.status]}`}
-        >
-          {room.status.replace("_", " ")}
-        </span>
+        <RoomStatusBadge status={room.status} />
       </div>
       <p className="mt-2 text-sm text-foreground/50">
-        To change availability status, use the actions on the{" "}
-        <Link href="/admin" className="text-venturo-olive hover:underline">
-          admin dashboard
+        To change availability status, use the actions on{" "}
+        <Link href="/admin/homes" className="text-venturo-olive hover:underline">
+          Homes &amp; Rooms
         </Link>
         .
       </p>

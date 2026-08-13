@@ -10,8 +10,8 @@ export default async function NewHomePage() {
 
   return (
     <Container size="sm" className="py-16 sm:py-20">
-      <Link href="/admin" className="text-sm text-foreground/60 hover:text-venturo-olive">
-        ← Back to admin
+      <Link href="/admin/homes" className="text-sm text-foreground/60 hover:text-venturo-olive">
+        ← Back to homes
       </Link>
 
       <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

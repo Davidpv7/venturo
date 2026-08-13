@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ButtonHTMLAttributes, LabelHTMLAttributes } from "react";
 
-export type ButtonVariant = "primary" | "secondary";
+export type ButtonVariant = "primary" | "secondary" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const base =
@@ -11,6 +11,10 @@ const variants: Record<ButtonVariant, string> = {
   primary: "bg-venturo-olive text-white shadow-sm hover:bg-venturo-olive/90",
   secondary:
     "border border-venturo-olive/30 text-venturo-olive hover:bg-venturo-olive/5",
+  // For irreversible actions (e.g. permanently deleting something already
+  // in Trash) — visually distinct from `secondary` so it doesn't read as
+  // just another neutral action.
+  danger: "border border-red-200 text-red-600 hover:bg-red-50",
 };
 
 // Real size variants rather than letting callers pass ad-hoc `className`

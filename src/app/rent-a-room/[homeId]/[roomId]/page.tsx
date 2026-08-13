@@ -26,8 +26,8 @@ export default async function RoomDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const room = await prisma.room.findUnique({
-    where: { id },
+  const room = await prisma.room.findFirst({
+    where: { id, deletedAt: null },
     include: {
       photos: true,
       home: true,

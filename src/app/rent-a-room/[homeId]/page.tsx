@@ -18,12 +18,12 @@ export default async function HomeDetailPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const home = await prisma.home.findUnique({
-    where: { id: homeId },
+  const home = await prisma.home.findFirst({
+    where: { id: homeId, deletedAt: null },
     include: {
       photos: true,
       rooms: {
-        where: { status: { not: "ARCHIVED" } },
+        where: { status: { not: "ARCHIVED" }, deletedAt: null },
         include: {
           photos: true,
           interests: user ? { where: { userId: user.id } } : false,

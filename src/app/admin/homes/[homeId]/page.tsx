@@ -7,15 +7,8 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
+import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import { updateHome, deleteHome, uploadHomePhotos, deleteHomePhoto, reorderHomePhotos } from "./actions";
-import type { RoomStatus } from "@/generated/prisma/client";
-
-const statusBadge: Record<RoomStatus, string> = {
-  AVAILABLE: "bg-venturo-olive/10 text-venturo-olive",
-  PENDING_DEPOSIT: "bg-red-50 text-red-700",
-  RENTED: "bg-foreground/80 text-white",
-  ARCHIVED: "bg-foreground/5 text-foreground/40",
-};
 
 const deleteErrors: Record<string, string> = {
   "has-rooms":
@@ -33,17 +26,20 @@ export default async function EditHomePage({
   const { homeId } = await params;
   const { error } = await searchParams;
 
-  const home = await prisma.home.findUnique({
-    where: { id: homeId },
-    include: { rooms: { orderBy: { createdAt: "desc" } }, photos: true },
+  const home = await prisma.home.findFirst({
+    where: { id: homeId, deletedAt: null },
+    include: {
+      rooms: { where: { deletedAt: null }, orderBy: { createdAt: "desc" } },
+      photos: true,
+    },
   });
 
   if (!home) notFound();
 
   return (
     <Container size="md" className="py-16 sm:py-20">
-      <Link href="/admin" className="text-sm text-foreground/60 hover:text-venturo-olive">
-        ← Back to admin
+      <Link href="/admin/homes" className="text-sm text-foreground/60 hover:text-venturo-olive">
+        ← Back to homes
       </Link>
 
       <h1 className="mt-4 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
@@ -141,11 +137,7 @@ export default async function EditHomePage({
                       </Link>
                     </td>
                     <td className="px-5 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusBadge[room.status]}`}
-                      >
-                        {room.status.replace("_", " ")}
-                      </span>
+                      <RoomStatusBadge status={room.status} />
                     </td>
                     <td className="px-5 py-3 text-foreground/80">
                       {formatWeeklyPrice(room.price)}

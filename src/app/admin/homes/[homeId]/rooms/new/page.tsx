@@ -15,7 +15,7 @@ export default async function NewRoomPage({
   await requireAdmin();
   const { homeId } = await params;
 
-  const home = await prisma.home.findUnique({ where: { id: homeId } });
+  const home = await prisma.home.findFirst({ where: { id: homeId, deletedAt: null } });
   if (!home) notFound();
 
   return (

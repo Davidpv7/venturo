@@ -29,7 +29,7 @@ export async function signContract(formData: FormData) {
   // the other reports 0 and backs off instead of double-booking the room.
   const contract = await prisma.$transaction(async (tx) => {
     const claim = await tx.room.updateMany({
-      where: { id: roomId, status: "AVAILABLE" },
+      where: { id: roomId, status: "AVAILABLE", deletedAt: null },
       data: { status: "PENDING_DEPOSIT", pendingSince: new Date() },
     });
 

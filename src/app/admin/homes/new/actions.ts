@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
-import { revalidateRoomPaths } from "@/app/admin/actions";
+import { revalidateRoomPaths } from "@/lib/admin-revalidate";
 
 export async function createHome(formData: FormData) {
   await requireAdmin();

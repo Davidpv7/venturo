@@ -4,6 +4,10 @@ const currency = new Intl.NumberFormat("en-AU", {
   maximumFractionDigits: 0,
 });
 
+export function formatCurrency(cents: number) {
+  return currency.format(cents / 100);
+}
+
 export function formatWeeklyPrice(priceInCents: number) {
-  return `${currency.format(priceInCents / 100)}/week`;
+  return `${formatCurrency(priceInCents)}/week`;
 }

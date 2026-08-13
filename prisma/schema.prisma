@@ -31,6 +31,7 @@ model Home {
   address     String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
   photos Photo[]
   rooms  Room[]
@@ -47,6 +48,7 @@ model Room {
   pendingSince      DateTime? // set when status flips to PENDING_DEPOSIT, cleared otherwise
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
+  deletedAt         DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
   home      Home       @relation(fields: [homeId], references: [id])
   photos    Photo[]
@@ -96,7 +98,33 @@ model Contract {
   leaseLengthMonths  Int // snapshotted at signing time, independent of the room's current listing
   depositConfirmed   Boolean   @default(false)
   depositConfirmedAt DateTime?
+  overridePriceCents Int? // per-tenant negotiated deal; null = use Room.price as normal
 
   user User @relation(fields: [userId], references: [id])
   room Room @relation(fields: [roomId], references: [id])
+}
+
+enum DocumentType {
+  HOUSE_RULES
+  LEASE_TEMPLATE
+  OTHER
+}
+
+model Document {
+  id        String       @id @default(uuid())
+  title     String
+  type      DocumentType
+  url       String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model ContactMessage {
+  id         String    @id @default(uuid())
+  name       String
+  email      String
+  message    String
+  createdAt  DateTime  @default(now())
+  readAt     DateTime? // null = unread
+  archivedAt DateTime? // null = active; admin replies happen outside the app (mailto)
 }

@@ -4,6 +4,7 @@ import { Container } from "@/components/ui/container";
 
 export default async function RentARoomPage() {
   const homes = await prisma.home.findMany({
+    where: { deletedAt: null },
     include: { photos: true },
     orderBy: { createdAt: "desc" },
   });

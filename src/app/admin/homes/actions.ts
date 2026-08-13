@@ -1,15 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { revalidateRoomPaths } from "@/lib/admin-revalidate";
 import { Prisma } from "@/generated/prisma/client";
-
-export async function revalidateRoomPaths() {
-  revalidatePath("/admin");
-  revalidatePath("/rent-a-room", "layout");
-  revalidatePath("/", "layout");
-}
 
 // Called any time a room transitions back to AVAILABLE. Finds everyone who
 // clicked "notify me" and hasn't been told yet, "sends" the email, and marks
@@ -136,14 +130,4 @@ export async function unarchiveRoom(formData: FormData) {
   });
 
   revalidateRoomPaths();
-}
-
-export async function setUserRole(formData: FormData) {
-  await requireAdmin();
-  const userId = formData.get("userId") as string;
-  const role = formData.get("role") as "ADMIN" | "USER";
-
-  await prisma.user.update({ where: { id: userId }, data: { role } });
-
-  revalidatePath("/admin");
 }

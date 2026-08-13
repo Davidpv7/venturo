@@ -38,11 +38,11 @@ const features = [
 
 export default async function HomePage() {
   const homes = await prisma.home.findMany({
-    where: { rooms: { some: { status: "AVAILABLE" } } },
+    where: { deletedAt: null, rooms: { some: { status: "AVAILABLE", deletedAt: null } } },
     include: {
       photos: true,
       rooms: {
-        where: { status: "AVAILABLE" },
+        where: { status: "AVAILABLE", deletedAt: null },
         orderBy: { price: "asc" },
         take: 1,
         select: { price: true },
