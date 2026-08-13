@@ -163,7 +163,7 @@ export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] })
               type="button"
               onClick={prev}
               aria-label="Previous home"
-              className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:left-4 sm:h-11 sm:w-11"
+              className="absolute left-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:left-4 sm:h-11 sm:w-11"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 6l-6 6 6 6" />
@@ -173,7 +173,7 @@ export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] })
               type="button"
               onClick={next}
               aria-label="Next home"
-              className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:right-4 sm:h-11 sm:w-11"
+              className="absolute right-2 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-venturo-olive/30 bg-venturo-cream/90 text-venturo-olive backdrop-blur hover:bg-venturo-olive/10 sm:right-4 sm:h-11 sm:w-11"
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 6l6 6-6 6" />
@@ -195,7 +195,7 @@ export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] })
               type="button"
               onClick={() => setIndex(i)}
               aria-label={`Go to home ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${
+              className={`h-1.5 cursor-pointer rounded-full transition-all ${
                 i === index ? "w-4 bg-venturo-olive" : "w-1.5 bg-venturo-olive/25"
               }`}
             />

@@ -65,7 +65,7 @@ export async function Nav() {
                 <form action={logout}>
                   <button
                     type="submit"
-                    className="text-foreground/80 transition-colors hover:text-venturo-olive"
+                    className="cursor-pointer text-foreground/80 transition-colors hover:text-venturo-olive"
                   >
                     Log out
                   </button>

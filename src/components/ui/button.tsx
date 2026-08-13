@@ -5,7 +5,7 @@ export type ButtonVariant = "primary" | "secondary";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-venturo-olive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-venturo-cream disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center rounded-md font-medium transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-venturo-olive/40 focus-visible:ring-offset-2 focus-visible:ring-offset-venturo-cream disabled:pointer-events-none disabled:opacity-50";
 
 const variants: Record<ButtonVariant, string> = {
   primary: "bg-venturo-olive text-white shadow-sm hover:bg-venturo-olive/90",

@@ -47,7 +47,7 @@ export function RoomPhotoGallery({
               onClick={() => setActiveIndex(i)}
               aria-label={`Show photo ${i + 1}`}
               aria-current={i === activeIndex}
-              className={`relative aspect-square w-16 shrink-0 overflow-hidden rounded-lg sm:w-20 ${
+              className={`relative aspect-square w-16 shrink-0 cursor-pointer overflow-hidden rounded-lg sm:w-20 ${
                 i === activeIndex
                   ? "ring-2 ring-venturo-olive"
                   : "opacity-70 hover:opacity-100"

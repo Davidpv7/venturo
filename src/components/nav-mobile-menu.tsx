@@ -26,7 +26,7 @@ export function NavMobileMenu({
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="flex h-9 w-9 items-center justify-center rounded-md text-venturo-olive transition-colors hover:bg-venturo-olive/10"
+        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-venturo-olive transition-colors hover:bg-venturo-olive/10"
       >
         {open ? (
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -79,7 +79,7 @@ export function NavMobileMenu({
                   <form action={onLogout}>
                     <button
                       type="submit"
-                      className="block w-full rounded px-2 py-2 text-left text-foreground/80 hover:bg-venturo-olive/5 hover:text-venturo-olive"
+                      className="block w-full cursor-pointer rounded px-2 py-2 text-left text-foreground/80 hover:bg-venturo-olive/5 hover:text-venturo-olive"
                     >
                       Log out
                     </button>
