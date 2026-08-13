@@ -8,7 +8,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { LocationMap } from "@/components/location-map";
-import { signContract } from "./actions";
+import { startOrResumeApplication } from "./actions";
 
 const DEPOSIT_WINDOW_HOURS = 12;
 
@@ -105,32 +105,21 @@ export default async function RoomDetailPage({
         {room.status === "AVAILABLE" && (
           <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5">
             {user ? (
-              <form action={signContract} className="flex flex-col gap-4">
+              <form action={startOrResumeApplication} className="flex flex-col gap-4">
                 <input type="hidden" name="roomId" value={room.id} />
                 <input type="hidden" name="homeId" value={homeId} />
                 <p className="text-sm leading-relaxed text-foreground/70">
-                  Signing agrees to a {room.leaseLengthMonths}-month lease at{" "}
-                  {formatWeeklyPrice(room.price)}, under contract version v1.0.
-                  (Placeholder terms — the full T&amp;Cs document is still being
-                  written.) The room will be held for you for{" "}
-                  {DEPOSIT_WINDOW_HOURS} hours to complete the deposit.
+                  Ready to apply? Tell us a bit about yourself in a few short
+                  steps — you can save your progress and come back any time.
                 </p>
-                <label className="flex items-center gap-2 text-sm text-foreground/80">
-                  <input
-                    type="checkbox"
-                    required
-                    className="h-4 w-4 accent-venturo-olive"
-                  />
-                  I agree to the lease terms
-                </label>
                 <Button type="submit" className="self-start">
-                  Sign &amp; Rent This Room
+                  Start Application for this Room
                 </Button>
               </form>
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm text-foreground/70">
-                  Log in to sign the lease and rent this room.
+                  Log in to apply for this room.
                 </p>
                 <ButtonLink href="/login">Log In</ButtonLink>
               </div>

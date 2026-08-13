@@ -5,10 +5,20 @@ import { createClient } from "@supabase/supabase-js";
 export const PHOTO_BUCKET = "listing-photos";
 export const DOCUMENT_BUCKET = "admin-documents";
 
+// Personal application documents (ID, proof of income, etc.) — unlike the
+// two buckets above, this one is private (no public-read policy), since the
+// files are applicants' personal documents. Also created manually via the
+// Supabase dashboard. Viewing requires a signed URL (see
+// src/lib/application-documents.ts), not getPublicUrl().
+export const APPLICATION_DOCS_BUCKET = "application-documents";
+
 // Service-role client — bypasses Storage RLS entirely, so authorization
-// must already have happened via requireAdmin() before this is ever
-// constructed. Only import this from admin Server Actions; never from
-// anything reachable by a non-admin request or a Client Component.
+// must already have happened before this is ever constructed: via
+// requireAdmin() for admin Server Actions, or via requireUser() plus an
+// explicit ownership check for the user-facing application-document
+// uploads. Only import this from a Server Action that has already verified
+// the caller; never from anything reachable by an unverified request or a
+// Client Component.
 export function createAdminClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

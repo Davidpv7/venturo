@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_LINKS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/homes", label: "Homes" },
+  { href: "/admin/applications", label: "Applications" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/documents", label: "Documents" },
@@ -18,7 +19,13 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function AdminSidebar({ unreadMessageCount = 0 }: { unreadMessageCount?: number }) {
+export function AdminSidebar({
+  unreadMessageCount = 0,
+  pendingApplicationCount = 0,
+}: {
+  unreadMessageCount?: number;
+  pendingApplicationCount?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -26,7 +33,12 @@ export function AdminSidebar({ unreadMessageCount = 0 }: { unreadMessageCount?: 
       <ul className="flex gap-1 overflow-x-auto px-4 py-3 text-sm sm:flex-col sm:gap-0.5 sm:px-3 sm:py-6">
         {NAV_LINKS.map((link) => {
           const active = isActive(pathname, link.href);
-          const badge = link.href === "/admin/messages" && unreadMessageCount > 0 ? unreadMessageCount : null;
+          const badge =
+            link.href === "/admin/messages" && unreadMessageCount > 0
+              ? unreadMessageCount
+              : link.href === "/admin/applications" && pendingApplicationCount > 0
+                ? pendingApplicationCount
+                : null;
           return (
             <li key={link.href} className="shrink-0 sm:shrink">
               <Link
