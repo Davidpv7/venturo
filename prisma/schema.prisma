@@ -17,6 +17,7 @@ model User {
   emergencyContactName  String?
   emergencyContactPhone String?
   notifyEmailUpdates    Boolean  @default(true)
+  termsAcceptedAt       DateTime? // set right after sign-up succeeds; null for accounts created before this field existed
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

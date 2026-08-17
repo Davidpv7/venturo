@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -32,6 +33,16 @@ export default async function LoginPage({
             Log In
           </Button>
         </form>
+
+        <div className="mt-6 flex items-center gap-3 text-xs text-foreground/50">
+          <div className="h-px flex-1 bg-venturo-olive/15" />
+          or
+          <div className="h-px flex-1 bg-venturo-olive/15" />
+        </div>
+
+        <div className="mt-6">
+          <GoogleAuthButton />
+        </div>
       </div>
 
       <p className="mt-6 text-center text-sm text-foreground/70">

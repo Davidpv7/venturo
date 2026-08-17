@@ -1,6 +1,10 @@
 import Link from "next/link";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
+import { PasswordField } from "@/components/auth/password-field";
+import { GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { TermsModalTrigger, PrivacyModalTrigger } from "@/components/auth/legal-modal-triggers";
 import { signup } from "./actions";
 
 export default async function SignupPage({
@@ -22,25 +26,47 @@ export default async function SignupPage({
         )}
 
         <form action={signup} className="mt-6 flex flex-col gap-4">
-          <Field label="Name">
-            <input name="name" type="text" className={inputClasses} />
+          <Field label="Full name">
+            <input name="fullName" type="text" required className={inputClasses} />
           </Field>
           <Field label="Email">
             <input name="email" type="email" required className={inputClasses} />
           </Field>
-          <Field label="Password">
+          <PasswordField />
+
+          <label className="flex items-start gap-2 text-sm text-foreground">
             <input
-              name="password"
-              type="password"
+              name="terms"
+              type="checkbox"
               required
-              minLength={6}
-              className={inputClasses}
+              className="mt-0.5 h-4 w-4 rounded border-venturo-olive/40 text-venturo-olive focus:ring-venturo-olive/30"
             />
-          </Field>
+            <span>
+              I agree to the <TermsModalTrigger /> and <PrivacyModalTrigger />.
+            </span>
+          </label>
+
+          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            <div
+              className="cf-turnstile"
+              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            />
+          )}
+
           <Button type="submit" className="mt-1">
             Sign Up
           </Button>
         </form>
+
+        <div className="mt-6 flex items-center gap-3 text-xs text-foreground/50">
+          <div className="h-px flex-1 bg-venturo-olive/15" />
+          or
+          <div className="h-px flex-1 bg-venturo-olive/15" />
+        </div>
+
+        <div className="mt-6">
+          <GoogleAuthButton />
+        </div>
       </div>
 
       <p className="mt-6 text-center text-sm text-foreground/70">
@@ -49,6 +75,8 @@ export default async function SignupPage({
           Log in
         </Link>
       </p>
+
+      <Script src="https://challenge.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/require-user";
+import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Container } from "@/components/ui/container";
 import { ApplicationStepNav } from "@/components/apply/application-step-nav";
 
@@ -11,7 +11,7 @@ export default async function ApplyLayout({
   children: React.ReactNode;
   params: Promise<{ applicationId: string }>;
 }) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const { applicationId } = await params;
 
   const application = await prisma.application.findUnique({

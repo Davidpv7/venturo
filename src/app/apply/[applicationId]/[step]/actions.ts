@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/require-user";
+import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { uploadApplicationDocument } from "@/lib/application-documents";
 import { nextApplicationStep } from "@/lib/application-steps";
 import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/prisma/client";
@@ -32,7 +32,7 @@ async function uploadIfPresent(
 }
 
 export async function saveApplicationPersonal(formData: FormData) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
   await loadOwnedDraftApplication(dbUser.id, applicationId);
 
@@ -59,7 +59,7 @@ export async function saveApplicationPersonal(formData: FormData) {
 }
 
 export async function saveApplicationIdentity(formData: FormData) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
   await loadOwnedDraftApplication(dbUser.id, applicationId);
 
@@ -83,7 +83,7 @@ export async function saveApplicationIdentity(formData: FormData) {
 }
 
 export async function saveApplicationIncome(formData: FormData) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
   await loadOwnedDraftApplication(dbUser.id, applicationId);
 
@@ -106,7 +106,7 @@ export async function saveApplicationIncome(formData: FormData) {
 }
 
 export async function saveApplicationReferences(formData: FormData) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
   await loadOwnedDraftApplication(dbUser.id, applicationId);
 
@@ -131,7 +131,7 @@ export async function saveApplicationReferences(formData: FormData) {
 }
 
 export async function submitApplication(formData: FormData) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
   const application = await loadOwnedDraftApplication(dbUser.id, applicationId);
 

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/require-user";
+import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
@@ -28,7 +28,7 @@ export default async function ApplicationStepPage({
   params: Promise<{ applicationId: string; step: string }>;
   searchParams: Promise<{ error?: string }>;
 }) {
-  const dbUser = await requireUser();
+  const dbUser = await requireVerifiedUser();
   const { applicationId, step } = await params;
   const { error } = await searchParams;
 

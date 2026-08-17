@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { requireVerifiedUser } from "@/lib/require-verified-user";
 
 // Placeholder until the real T&Cs document exists (per project handoff notes)
 // — every contract signed under the current terms gets tagged with this so
@@ -97,21 +98,14 @@ export async function signContract(formData: FormData) {
 export async function startOrResumeApplication(formData: FormData) {
   const roomId = formData.get("roomId") as string;
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
+  const dbUser = await requireVerifiedUser();
 
   const existing = await prisma.application.findFirst({
-    where: { userId: user.id, roomId, status: { in: ["DRAFT", "SUBMITTED", "UNDER_REVIEW"] } },
+    where: { userId: dbUser.id, roomId, status: { in: ["DRAFT", "SUBMITTED", "UNDER_REVIEW"] } },
   });
 
   const application =
-    existing ?? (await prisma.application.create({ data: { userId: user.id, roomId } }));
+    existing ?? (await prisma.application.create({ data: { userId: dbUser.id, roomId } }));
 
   redirect(`/apply/${application.id}/personal`);
 }
