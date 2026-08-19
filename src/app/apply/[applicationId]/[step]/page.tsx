@@ -26,11 +26,11 @@ export default async function ApplicationStepPage({
   searchParams,
 }: {
   params: Promise<{ applicationId: string; step: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; missing?: string }>;
 }) {
   const dbUser = await requireVerifiedUser();
   const { applicationId, step } = await params;
-  const { error } = await searchParams;
+  const { error, missing } = await searchParams;
 
   if (!isApplicationStep(step)) notFound();
 
@@ -43,10 +43,16 @@ export default async function ApplicationStepPage({
   return (
     <Card>
       {error === "incomplete" && (
-        <p className="mb-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
-          Please fill in all required fields and upload the required documents before
-          submitting.
-        </p>
+        <div className="mb-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+          <p>Please complete the following before submitting:</p>
+          {missing && (
+            <ul className="mt-2 list-inside list-disc">
+              {missing.split("|").map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       {step === "personal" && <PersonalStep application={application} />}

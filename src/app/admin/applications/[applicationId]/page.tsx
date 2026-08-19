@@ -21,11 +21,14 @@ function SummaryRow({ label, value }: { label: string; value: string | null }) {
 
 export default async function AdminApplicationDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ applicationId: string }>;
+  searchParams: Promise<{ error?: string }>;
 }) {
   await requireAdmin();
   const { applicationId } = await params;
+  const { error } = await searchParams;
 
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
@@ -51,6 +54,14 @@ export default async function AdminApplicationDetailPage({
       <div className="mt-4">
         <ApplicationStatusBadge status={application.status} />
       </div>
+
+      {error === "room-unavailable" && (
+        <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+          This room is no longer available — someone else&apos;s application
+          already claimed it. Reject this application or pick a different
+          room.
+        </p>
+      )}
 
       <Card className="mt-8">
         <h2 className="font-semibold text-foreground">Personal details</h2>

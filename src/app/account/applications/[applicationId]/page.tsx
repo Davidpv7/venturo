@@ -57,6 +57,15 @@ export default async function ApplicationStatusPage({
           </ButtonLink>
         )}
 
+        {application.status === "APPROVED" && (
+          <ButtonLink
+            href={`/rent-a-room/${application.room.homeId}/${application.roomId}`}
+            className="mt-6"
+          >
+            Pay Your Deposit
+          </ButtonLink>
+        )}
+
         {application.status === "REJECTED" && (
           <ButtonLink href="/rent-a-room" variant="secondary" className="mt-6">
             Browse Other Rooms

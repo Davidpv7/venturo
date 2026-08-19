@@ -14,13 +14,10 @@ const DEPOSIT_WINDOW_HOURS = 12;
 
 export default async function RoomDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ homeId: string; roomId: string }>;
-  searchParams: Promise<{ signed?: string; error?: string }>;
 }) {
   const { homeId, roomId: id } = await params;
-  const { signed, error } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -89,13 +86,6 @@ export default async function RoomDetailPage({
           {room.description}
         </p>
 
-        {error === "unavailable" && (
-          <p className="mt-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
-            Someone else just booked this room before you finished signing.
-            Sorry — check the other listings below.
-          </p>
-        )}
-
         {room.status === "ARCHIVED" && (
           <p className="mt-6 rounded-md bg-foreground/5 px-3 py-2.5 text-sm text-foreground/60">
             This listing is no longer available.
@@ -129,9 +119,6 @@ export default async function RoomDetailPage({
 
         {room.status === "PENDING_DEPOSIT" && myContract && (
           <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5 text-sm text-foreground/80">
-            {signed && (
-              <p className="mb-2 font-medium text-venturo-olive">Lease signed!</p>
-            )}
             <p className="leading-relaxed">
               Next step: pay the deposit before{" "}
               <strong>{depositDeadline?.toLocaleString("en-AU")}</strong> (

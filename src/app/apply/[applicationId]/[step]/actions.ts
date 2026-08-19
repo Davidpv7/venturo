@@ -138,32 +138,41 @@ export async function submitApplication(formData: FormData) {
   const documents = await prisma.applicationDocument.findMany({ where: { applicationId } });
   const hasDocument = (type: ApplicationDocumentType) => documents.some((doc) => doc.type === type);
 
-  const missingPersonalDetails =
-    !application.legalFirstName ||
-    !application.legalLastName ||
-    !application.dateOfBirth ||
-    !application.phone ||
-    !application.email ||
-    !application.currentAddress ||
-    !application.preferredMoveIn ||
-    !application.intendedStayMonths;
+  const missing: string[] = [];
 
-  const missingIdentity =
-    application.isAustralianCitizen === null ||
-    !hasDocument("PRIMARY_ID") ||
-    (application.isAustralianCitizen === false && !hasDocument("VISA_GRANT_NOTICE"));
+  if (!application.legalFirstName) missing.push("Legal first name");
+  if (!application.legalLastName) missing.push("Legal last name");
+  if (!application.dateOfBirth) missing.push("Date of birth");
+  if (!application.phone) missing.push("Phone");
+  if (!application.email) missing.push("Email");
+  if (!application.currentAddress) missing.push("Current address");
+  if (!application.preferredMoveIn) missing.push("Preferred move-in date");
+  if (!application.intendedStayMonths) missing.push("Intended length of stay");
 
-  const missingIncome =
-    !application.employmentStatus ||
-    (application.employmentStatus === "STUDENT"
-      ? !hasDocument("ENROLMENT_CONFIRMATION")
-      : !hasDocument("PROOF_OF_INCOME"));
+  if (application.isAustralianCitizen === null) {
+    missing.push("Australian citizen / permanent resident answer");
+  }
+  if (!hasDocument("PRIMARY_ID")) missing.push("Primary ID upload");
+  if (application.isAustralianCitizen === false && !hasDocument("VISA_GRANT_NOTICE")) {
+    missing.push("Visa grant notice upload");
+  }
 
-  const missingReferences =
-    !application.reference1Name || !application.reference1Phone || !application.reference1Email;
+  if (!application.employmentStatus) {
+    missing.push("Employment status");
+  } else if (application.employmentStatus === "STUDENT") {
+    if (!hasDocument("ENROLMENT_CONFIRMATION")) missing.push("Enrolment confirmation upload");
+  } else if (!hasDocument("PROOF_OF_INCOME")) {
+    missing.push("Proof of income upload");
+  }
 
-  if (missingPersonalDetails || missingIdentity || missingIncome || missingReferences) {
-    redirect(`/apply/${applicationId}/review?error=incomplete`);
+  if (!application.reference1Name) missing.push("Reference 1 name");
+  if (!application.reference1Phone) missing.push("Reference 1 phone");
+  if (!application.reference1Email) missing.push("Reference 1 email");
+
+  if (missing.length > 0) {
+    redirect(
+      `/apply/${applicationId}/review?error=incomplete&missing=${encodeURIComponent(missing.join("|"))}`,
+    );
   }
 
   await prisma.application.update({
