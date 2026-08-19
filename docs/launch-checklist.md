@@ -20,6 +20,13 @@ users start signing up.
 - [ ] Supabase Dashboard → Authentication → URL Configuration → Redirect
       URLs → add `https://<production-domain>/auth/callback` (Google
       sign-in will silently fail on the new domain until this is added).
+- [ ] Resend → verify the production domain (SPF/DKIM DNS records), then
+      change `FROM_EMAIL` in `src/lib/email.ts` from the shared
+      `onboarding@resend.dev` test sender to a verified address on that
+      domain — without a verified domain, Resend restricts the test sender
+      to only deliver to the email address the Resend account is
+      registered under, so notify-me/contact/application emails won't
+      reliably reach real users until this is done.
 
 ## Needs doing regardless of domain (still outstanding)
 

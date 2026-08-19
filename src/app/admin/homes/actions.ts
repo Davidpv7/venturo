@@ -3,27 +3,27 @@
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
+import { sendEmail, roomAvailableEmail } from "@/lib/email";
 import { Prisma } from "@/generated/prisma/client";
 
 // Called any time a room transitions back to AVAILABLE. Finds everyone who
-// clicked "notify me" and hasn't been told yet, "sends" the email, and marks
-// them notified — so a room that flips available/unavailable repeatedly
-// doesn't spam the same person twice.
-//
-// TODO: actually send via Resend once it's wired up (same integration the
-// Contact page needs) — logging for now so this is honest about what it
-// does rather than silently pretending to deliver an email.
+// clicked "notify me" and hasn't been told yet, emails them, and marks them
+// notified — so a room that flips available/unavailable repeatedly doesn't
+// spam the same person twice.
 async function notifyInterestedUsers(tx: Prisma.TransactionClient, roomId: string) {
   const pending = await tx.interest.findMany({
     where: { roomId, notifiedAt: null },
     include: { user: true },
   });
 
-  for (const interest of pending) {
-    console.log("[notify-me email]", { to: interest.user.email, roomId });
-  }
-
   if (pending.length > 0) {
+    const room = await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { home: true } });
+    const { subject, html, text } = roomAvailableEmail(room.title, room.home.name, room.homeId, room.id);
+
+    for (const interest of pending) {
+      await sendEmail({ to: interest.user.email, subject, html, text });
+    }
+
     await tx.interest.updateMany({
       where: { id: { in: pending.map((i) => i.id) } },
       data: { notifiedAt: new Date() },

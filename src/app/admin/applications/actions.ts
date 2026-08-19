@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
+import { sendEmail, applicationApprovedEmail, applicationRejectedEmail } from "@/lib/email";
 
 // Placeholder until the real T&Cs document exists — every contract approved
 // under the current terms gets tagged with this so future versions can
@@ -42,6 +43,7 @@ export async function approveApplication(formData: FormData) {
 
   const application = await prisma.application.findUniqueOrThrow({
     where: { id: applicationId },
+    include: { user: true, room: { include: { home: true } } },
   });
 
   // Conditional update + create, both inside one transaction: the `where`
@@ -99,6 +101,14 @@ export async function approveApplication(formData: FormData) {
   if (!contract) {
     redirect(`/admin/applications/${applicationId}?error=room-unavailable`);
   }
+
+  const { subject, html, text } = applicationApprovedEmail(
+    application.room.title,
+    application.room.home.name,
+    application.room.homeId,
+    application.roomId,
+  );
+  await sendEmail({ to: application.user.email, subject, html, text });
 }
 
 export async function rejectApplication(formData: FormData) {
@@ -108,11 +118,18 @@ export async function rejectApplication(formData: FormData) {
   const deleteAfter = new Date();
   deleteAfter.setDate(deleteAfter.getDate() + 60);
 
-  await prisma.application.update({
+  const application = await prisma.application.update({
     where: { id: applicationId },
     data: { status: "REJECTED", rejectedAt: new Date(), reviewedAt: new Date(), deleteAfter },
+    include: { user: true, room: { include: { home: true } } },
   });
 
   revalidatePath("/admin/applications");
   revalidatePath(`/admin/applications/${applicationId}`);
+
+  const { subject, html, text } = applicationRejectedEmail(
+    application.room.title,
+    application.room.home.name,
+  );
+  await sendEmail({ to: application.user.email, subject, html, text });
 }
