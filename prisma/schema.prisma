@@ -216,6 +216,14 @@ model Contract {
   depositConfirmedAt DateTime?
   overridePriceCents Int? // per-tenant negotiated deal; null = use Room.price as normal
 
+  // Manual bank-transfer rent tracking — no Invoice records, the bank's own
+  // transfer confirmation is the source of truth. nextRentDueDate is null
+  // until an admin sets it (either via confirmDeposit, or the first time
+  // they touch this tenant's row on /admin/tenants).
+  nextRentDueDate       DateTime?
+  rentTenantConfirmedAt DateTime? // tenant clicked "I've Paid"; a signal, not a transaction
+  rentLastPaidAt        DateTime? // set only when an admin clicks "Mark Paid"
+
   user           User            @relation(fields: [userId], references: [id])
   room           Room            @relation(fields: [roomId], references: [id])
   invoices       Invoice[]
@@ -292,6 +300,15 @@ model ContactMessage {
   createdAt  DateTime  @default(now())
   readAt     DateTime? // null = unread
   archivedAt DateTime? // null = active; admin replies happen outside the app (mailto)
+}
+
+// Singleton row (id is always "singleton") holding the one bank account
+// tenants transfer rent into. Free-text rather than structured BSB/account
+// fields so it stays editable/country-agnostic without a schema change.
+model PaymentSettings {
+  id          String   @id @default("singleton")
+  bankDetails String
+  updatedAt   DateTime @updatedAt
 }
 
 model RoomQuestion {

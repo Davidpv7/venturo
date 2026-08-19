@@ -46,9 +46,13 @@ export async function confirmDeposit(formData: FormData) {
       orderBy: { agreedAt: "desc" },
     });
 
+    const now = new Date();
+    const nextRentDueDate = new Date(now);
+    nextRentDueDate.setDate(nextRentDueDate.getDate() + 7);
+
     await tx.contract.update({
       where: { id: contract.id },
-      data: { depositConfirmed: true, depositConfirmedAt: new Date() },
+      data: { depositConfirmed: true, depositConfirmedAt: now, nextRentDueDate },
     });
 
     await tx.room.update({

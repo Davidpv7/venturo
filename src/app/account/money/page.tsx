@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { getCurrentContract } from "@/lib/customer-contract";
 import { getInvoiceDisplayStatus } from "@/lib/invoices";
@@ -6,7 +7,9 @@ import { formatCurrency, formatWeeklyPrice } from "@/lib/format";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ModalTrigger } from "@/components/ui/modal";
 import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
+import { confirmRentPayment } from "./actions";
 
 export default async function MyMoneyPage() {
   const dbUser = await requireUser();
@@ -31,7 +34,7 @@ export default async function MyMoneyPage() {
 
   const { room, invoices } = contract;
   const rentCents = contract.overridePriceCents ?? room.price;
-  const nextDueInvoice = invoices.find((invoice) => getInvoiceDisplayStatus(invoice) !== "PAID");
+  const paymentSettings = await prisma.paymentSettings.findUnique({ where: { id: "singleton" } });
 
   return (
     <Container size="sm" className="py-16 sm:py-20">
@@ -44,15 +47,70 @@ export default async function MyMoneyPage() {
         <p className="mt-2 text-2xl font-semibold text-foreground">
           {formatWeeklyPrice(rentCents)}
         </p>
-        <p className="mt-1 text-sm text-foreground/60">
-          {nextDueInvoice
-            ? `${formatCurrency(nextDueInvoice.amountCents)} due ${nextDueInvoice.dueDate.toLocaleDateString("en-AU")}`
-            : "No upcoming invoice on file."}
-        </p>
-        <div className="mt-4 flex items-center gap-3">
-          <Button type="button">Pay Rent</Button>
-          <span className="text-xs text-foreground/50">Online payments coming soon</span>
-        </div>
+
+        {contract.depositConfirmed ? (
+          <>
+            <p className="mt-1 text-sm text-foreground/60">
+              {contract.nextRentDueDate
+                ? `Next due ${contract.nextRentDueDate.toLocaleDateString("en-AU")}`
+                : "No due date set yet — contact us."}
+            </p>
+
+            <div className="mt-4 flex items-center gap-3">
+              <ModalTrigger
+                label="Pay My Rent"
+                title="Pay My Rent"
+                triggerClassName="inline-flex items-center justify-center rounded-md bg-venturo-olive px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-venturo-olive/90 cursor-pointer"
+              >
+                <div className="flex flex-col gap-4 text-sm text-foreground">
+                  <p>
+                    Pay <span className="font-semibold">{formatWeeklyPrice(rentCents)}</span> by
+                    bank transfer to the account below
+                    {contract.nextRentDueDate
+                      ? ` — next due ${contract.nextRentDueDate.toLocaleDateString("en-AU")}.`
+                      : "."}
+                  </p>
+                  {paymentSettings ? (
+                    <pre className="whitespace-pre-wrap rounded-md border border-venturo-olive/15 bg-venturo-cream-alt p-4 font-sans text-sm text-foreground">
+                      {paymentSettings.bankDetails}
+                    </pre>
+                  ) : (
+                    <p className="text-foreground/60">
+                      Bank details haven&apos;t been set up yet — contact your host directly.
+                    </p>
+                  )}
+                  <p className="text-xs text-foreground/50">
+                    Once you&apos;ve made the transfer, close this and click &quot;I&apos;ve
+                    Paid&quot; below.
+                  </p>
+                </div>
+              </ModalTrigger>
+            </div>
+
+            <div className="mt-4 border-t border-venturo-olive/10 pt-4">
+              {contract.rentTenantConfirmedAt ? (
+                <p className="text-sm text-venturo-olive">
+                  Thanks — you confirmed payment on{" "}
+                  {contract.rentTenantConfirmedAt.toLocaleDateString("en-AU")}. We&apos;ll mark
+                  this paid once it&apos;s received.
+                </p>
+              ) : (
+                <form action={confirmRentPayment} className="flex items-center gap-3">
+                  <Button type="submit" variant="secondary">
+                    I&apos;ve Paid
+                  </Button>
+                  <span className="text-xs text-foreground/50">
+                    Click once you&apos;ve sent the transfer above.
+                  </span>
+                </form>
+              )}
+            </div>
+          </>
+        ) : (
+          <p className="mt-1 text-sm text-foreground/60">
+            Rent payments open up once your deposit is confirmed — see below.
+          </p>
+        )}
       </Card>
 
       <Card className="mt-6">

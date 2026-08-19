@@ -26,3 +26,14 @@ export function truncateToWords(value: string, maxWords: number) {
   if (words.length <= maxWords) return value;
   return words.slice(0, maxWords).join(" ");
 }
+
+// For <input type="date"> defaultValue. Built from UTC getters rather than
+// toISOString().slice(0, 10) — that shifts by a day depending on the
+// stored time-of-day vs. local rendering, which matters near midnight
+// AEST/AEDT.
+export function toDateInputValue(date: Date) {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}

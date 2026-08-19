@@ -14,6 +14,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pendingApplicationCount = await prisma.application.count({
     where: { status: { in: ["SUBMITTED", "UNDER_REVIEW"] } },
   });
+  const overdueRentCount = await prisma.contract.count({
+    where: {
+      depositConfirmed: true,
+      nextRentDueDate: { lt: new Date() },
+      room: { status: "RENTED" },
+    },
+  });
 
   return (
     <div className="flex flex-col sm:flex-row">
@@ -21,6 +28,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         unreadMessageCount={unreadMessageCount}
         unreadQuestionCount={unreadQuestionCount}
         pendingApplicationCount={pendingApplicationCount}
+        overdueRentCount={overdueRentCount}
       />
       <div className="min-w-0 flex-1">{children}</div>
     </div>

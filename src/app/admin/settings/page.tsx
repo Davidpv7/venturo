@@ -42,6 +42,16 @@ export default async function AdminSettingsPage() {
             Manage Pricing
           </ButtonLink>
         </Card>
+
+        <Card>
+          <h2 className="font-semibold text-foreground">Payment</h2>
+          <p className="mt-1 text-sm text-foreground/60">
+            Bank details shown to tenants in the Pay My Rent popup
+          </p>
+          <ButtonLink href="/admin/settings/payment" size="sm" className="mt-4">
+            Manage Payment
+          </ButtonLink>
+        </Card>
       </div>
     </Container>
   );

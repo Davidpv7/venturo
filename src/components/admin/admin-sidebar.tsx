@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_LINKS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/homes", label: "Homes" },
+  { href: "/admin/tenants", label: "Tenants" },
   { href: "/admin/applications", label: "Applications" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/messages", label: "Messages" },
@@ -24,26 +25,28 @@ export function AdminSidebar({
   unreadMessageCount = 0,
   unreadQuestionCount = 0,
   pendingApplicationCount = 0,
+  overdueRentCount = 0,
 }: {
   unreadMessageCount?: number;
   unreadQuestionCount?: number;
   pendingApplicationCount?: number;
+  overdueRentCount?: number;
 }) {
   const pathname = usePathname();
+
+  const badgeCounts: Record<string, number> = {
+    "/admin/messages": unreadMessageCount,
+    "/admin/questions": unreadQuestionCount,
+    "/admin/applications": pendingApplicationCount,
+    "/admin/tenants": overdueRentCount,
+  };
 
   return (
     <nav className="shrink-0 border-b border-venturo-olive/15 bg-venturo-cream-alt sm:w-48 sm:border-b-0 sm:border-r">
       <ul className="flex gap-1 overflow-x-auto px-4 py-3 text-sm sm:flex-col sm:gap-0.5 sm:px-3 sm:py-6">
         {NAV_LINKS.map((link) => {
           const active = isActive(pathname, link.href);
-          const badge =
-            link.href === "/admin/messages" && unreadMessageCount > 0
-              ? unreadMessageCount
-              : link.href === "/admin/questions" && unreadQuestionCount > 0
-                ? unreadQuestionCount
-                : link.href === "/admin/applications" && pendingApplicationCount > 0
-                  ? pendingApplicationCount
-                  : null;
+          const badge = badgeCounts[link.href] > 0 ? badgeCounts[link.href] : null;
           return (
             <li key={link.href} className="shrink-0 sm:shrink">
               <Link
