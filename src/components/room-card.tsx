@@ -46,7 +46,7 @@ export function RoomCard({
             </span>
           )}
         </div>
-        <p className="text-sm text-foreground/80 line-clamp-2">{room.description}</p>
+        <p className="text-sm text-foreground/80 line-clamp-2">{room.subtitle ?? room.description}</p>
         <div className="mt-1 flex items-center justify-between text-sm">
           <span className="font-medium text-venturo-olive">
             {formatWeeklyPrice(room.price)}

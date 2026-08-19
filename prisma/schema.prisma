@@ -51,6 +51,7 @@ model Home {
 model Room {
   id                String     @id @default(uuid())
   title             String
+  subtitle          String? // short admin-written blurb shown under photos; ~15 words, enforced in the UI
   description       String // amenities, deposit info, etc. described manually — listings are short
   price             Int // stored in cents to avoid float rounding bugs
   leaseLengthMonths Int // dropdown options enforced in UI, not the DB

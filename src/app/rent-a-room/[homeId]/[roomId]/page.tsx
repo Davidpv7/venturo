@@ -87,7 +87,7 @@ export default async function RoomDetailPage({
           {formatWeeklyPrice(room.price)} — {room.leaseLengthMonths} month lease
         </p>
         <p className="mt-4 line-clamp-2 leading-relaxed text-foreground/80">
-          {room.description}
+          {room.subtitle ?? room.description}
         </p>
 
         {room.status === "ARCHIVED" && (
@@ -163,7 +163,7 @@ export default async function RoomDetailPage({
 
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
         <h2 className="text-xl font-semibold text-foreground">About this room</h2>
-        <p className="mt-3 leading-relaxed text-foreground/80">{room.description}</p>
+        <p className="mt-3 leading-relaxed whitespace-pre-line text-foreground/80">{room.description}</p>
       </div>
 
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">

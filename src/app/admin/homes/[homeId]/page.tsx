@@ -8,6 +8,8 @@ import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
 import { RoomStatusBadge } from "@/components/admin/room-status-badge";
+import { AddressAutocompleteField } from "@/components/admin/address-autocomplete-field";
+import { LocationMap } from "@/components/location-map";
 import { updateHome, deleteHome, uploadHomePhotos, deleteHomePhoto, reorderHomePhotos } from "./actions";
 
 const deleteErrors: Record<string, string> = {
@@ -65,15 +67,7 @@ export default async function EditHomePage({
               className={inputClasses}
             />
           </Field>
-          <Field label="Address">
-            <input
-              name="address"
-              type="text"
-              defaultValue={home.address}
-              required
-              className={inputClasses}
-            />
-          </Field>
+          <AddressAutocompleteField defaultValue={home.address} />
           <Field label="Description">
             <textarea
               name="description"
@@ -111,6 +105,14 @@ export default async function EditHomePage({
             Delete Home
           </Button>
         </form>
+      </section>
+
+      <section className="mt-6 rounded-xl border border-venturo-olive/15 bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-medium text-foreground/70">Location preview</h2>
+        <p className="mt-1 text-sm text-foreground/60">{home.address}</p>
+        <div className="mt-3">
+          <LocationMap address={home.address} />
+        </div>
       </section>
 
       <PhotoManager

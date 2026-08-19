@@ -10,7 +10,9 @@ import { Card } from "@/components/ui/card";
 import { Field, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
 import { RoomStatusBadge } from "@/components/admin/room-status-badge";
+import { SubtitleField } from "@/components/admin/subtitle-field";
 import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
+import { LocationMap } from "@/components/location-map";
 import {
   updateRoom,
   deleteRoom,
@@ -87,6 +89,14 @@ export default async function EditRoomPage({
       )}
 
       <section className="mt-8 rounded-xl border border-venturo-olive/15 bg-white p-6 shadow-sm">
+        <h2 className="text-sm font-medium text-foreground/70">Home location</h2>
+        <p className="mt-1 text-sm text-foreground/60">{room.home.address}</p>
+        <div className="mt-3">
+          <LocationMap address={room.home.address} />
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-xl border border-venturo-olive/15 bg-white p-6 shadow-sm">
         <h2 className="font-semibold text-foreground">Details</h2>
         <form action={updateRoom} className="mt-4 flex flex-col gap-4">
           <input type="hidden" name="roomId" value={room.id} />
@@ -99,6 +109,7 @@ export default async function EditRoomPage({
               className={inputClasses}
             />
           </Field>
+          <SubtitleField defaultValue={room.subtitle ?? ""} />
           <Field label="Weekly price (AUD)">
             <input
               name="price"

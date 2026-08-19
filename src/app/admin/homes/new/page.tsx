@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Field, inputClasses } from "@/components/ui/field";
+import { AddressAutocompleteField } from "@/components/admin/address-autocomplete-field";
 import { createHome } from "./actions";
 
 export default async function NewHomePage() {
@@ -25,9 +26,7 @@ export default async function NewHomePage() {
         <Field label="Name">
           <input name="name" type="text" required className={inputClasses} />
         </Field>
-        <Field label="Address">
-          <input name="address" type="text" required className={inputClasses} />
-        </Field>
+        <AddressAutocompleteField />
         <Field label="Description">
           <textarea name="description" required rows={4} className={inputClasses} />
         </Field>

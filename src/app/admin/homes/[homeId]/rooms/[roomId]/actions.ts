@@ -6,19 +6,22 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
 import { uploadPhotos, deletePhoto, reorderPhotos } from "@/lib/admin-photos";
+import { truncateToWords } from "@/lib/format";
 
 export async function updateRoom(formData: FormData) {
   await requireAdmin();
 
   const roomId = formData.get("roomId") as string;
   const title = formData.get("title") as string;
+  const subtitleRaw = ((formData.get("subtitle") as string) ?? "").trim();
+  const subtitle = truncateToWords(subtitleRaw, 15) || null;
   const description = formData.get("description") as string;
   const price = Math.round(parseFloat(formData.get("price") as string) * 100);
   const leaseLengthMonths = parseInt(formData.get("leaseLengthMonths") as string, 10);
 
   await prisma.room.update({
     where: { id: roomId },
-    data: { title, description, price, leaseLengthMonths },
+    data: { title, subtitle, description, price, leaseLengthMonths },
   });
 
   revalidateRoomPaths();

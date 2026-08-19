@@ -16,3 +16,13 @@ export function formatFullName(user: { name: string | null; lastName: string | n
   const fullName = [user.name, user.lastName].filter(Boolean).join(" ");
   return fullName || null;
 }
+
+export function countWords(value: string) {
+  return value.trim().split(/\s+/).filter(Boolean).length;
+}
+
+export function truncateToWords(value: string, maxWords: number) {
+  const words = value.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= maxWords) return value;
+  return words.slice(0, maxWords).join(" ");
+}
