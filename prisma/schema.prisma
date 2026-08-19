@@ -21,9 +21,10 @@ model User {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
-  interests    Interest[]
-  contracts    Contract[]
-  applications Application[]
+  interests     Interest[]
+  contracts     Contract[]
+  applications  Application[]
+  roomQuestions RoomQuestion[]
 }
 
 enum Role {
@@ -60,11 +61,12 @@ model Room {
   updatedAt         DateTime   @updatedAt
   deletedAt         DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
-  home         Home          @relation(fields: [homeId], references: [id])
-  photos       Photo[]
-  interests    Interest[]
-  contracts    Contract[]
-  applications Application[]
+  home          Home           @relation(fields: [homeId], references: [id])
+  photos        Photo[]
+  interests     Interest[]
+  contracts     Contract[]
+  applications  Application[]
+  roomQuestions RoomQuestion[]
 }
 
 enum RoomStatus {
@@ -289,4 +291,19 @@ model ContactMessage {
   createdAt  DateTime  @default(now())
   readAt     DateTime? // null = unread
   archivedAt DateTime? // null = active; admin replies happen outside the app (mailto)
+}
+
+model RoomQuestion {
+  id         String    @id @default(uuid())
+  userId     String
+  roomId     String
+  message    String
+  createdAt  DateTime  @default(now())
+  readAt     DateTime? // null = unread
+  archivedAt DateTime? // null = active; admin replies happen outside the app (email)
+
+  user User @relation(fields: [userId], references: [id])
+  room Room @relation(fields: [roomId], references: [id])
+
+  @@index([roomId])
 }

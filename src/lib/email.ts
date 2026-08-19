@@ -82,6 +82,30 @@ export function applicationApprovedEmail(roomTitle: string, homeName: string, ho
   };
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+export function roomQuestionEmail(
+  askerName: string,
+  roomTitle: string,
+  homeName: string,
+  homeId: string,
+  roomId: string,
+  message: string,
+) {
+  const roomUrl = `${getSiteUrl()}/rent-a-room/${homeId}/${roomId}`;
+  const adminUrl = `${getSiteUrl()}/admin/questions`;
+  return {
+    subject: `Question about ${roomTitle}`,
+    text: `${askerName} asked about ${roomTitle} (${homeName}):\n\n${message}\n\nRoom: ${roomUrl}\nView in admin: ${adminUrl}`,
+    html: `<p>${escapeHtml(askerName)} asked about <strong>${escapeHtml(roomTitle)}</strong> (${escapeHtml(homeName)}):</p><p>${escapeHtml(message)}</p><p><a href="${roomUrl}">${roomUrl}</a></p><p><a href="${adminUrl}">View in admin</a></p>`,
+  };
+}
+
 export function applicationRejectedEmail(roomTitle: string, homeName: string) {
   return {
     subject: "Update on your application",

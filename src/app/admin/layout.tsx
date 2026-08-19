@@ -8,6 +8,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const unreadMessageCount = await prisma.contactMessage.count({
     where: { readAt: null, archivedAt: null },
   });
+  const unreadQuestionCount = await prisma.roomQuestion.count({
+    where: { readAt: null, archivedAt: null },
+  });
   const pendingApplicationCount = await prisma.application.count({
     where: { status: { in: ["SUBMITTED", "UNDER_REVIEW"] } },
   });
@@ -16,6 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="flex flex-col sm:flex-row">
       <AdminSidebar
         unreadMessageCount={unreadMessageCount}
+        unreadQuestionCount={unreadQuestionCount}
         pendingApplicationCount={pendingApplicationCount}
       />
       <div className="min-w-0 flex-1">{children}</div>

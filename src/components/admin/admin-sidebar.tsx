@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "/admin/applications", label: "Applications" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/questions", label: "Questions" },
   { href: "/admin/documents", label: "Documents" },
   { href: "/admin/announcements", label: "Announcements" },
   { href: "/admin/settings", label: "Settings" },
@@ -21,9 +22,11 @@ function isActive(pathname: string, href: string) {
 
 export function AdminSidebar({
   unreadMessageCount = 0,
+  unreadQuestionCount = 0,
   pendingApplicationCount = 0,
 }: {
   unreadMessageCount?: number;
+  unreadQuestionCount?: number;
   pendingApplicationCount?: number;
 }) {
   const pathname = usePathname();
@@ -36,9 +39,11 @@ export function AdminSidebar({
           const badge =
             link.href === "/admin/messages" && unreadMessageCount > 0
               ? unreadMessageCount
-              : link.href === "/admin/applications" && pendingApplicationCount > 0
-                ? pendingApplicationCount
-                : null;
+              : link.href === "/admin/questions" && unreadQuestionCount > 0
+                ? unreadQuestionCount
+                : link.href === "/admin/applications" && pendingApplicationCount > 0
+                  ? pendingApplicationCount
+                  : null;
           return (
             <li key={link.href} className="shrink-0 sm:shrink">
               <Link

@@ -5,19 +5,23 @@ import { createClient } from "@/lib/supabase/server";
 import { formatWeeklyPrice } from "@/lib/format";
 import { createInterest } from "@/app/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { Field, inputClasses } from "@/components/ui/field";
 import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { LocationMap } from "@/components/location-map";
-import { startOrResumeApplication } from "./actions";
+import { startOrResumeApplication, askRoomQuestion } from "./actions";
 
 const DEPOSIT_WINDOW_HOURS = 12;
 
 export default async function RoomDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ homeId: string; roomId: string }>;
+  searchParams: Promise<{ asked?: string }>;
 }) {
   const { homeId, roomId: id } = await params;
+  const { asked } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -168,6 +172,39 @@ export default async function RoomDetailPage({
         <div className="mt-4">
           <LocationMap address={room.home.address} />
         </div>
+      </div>
+
+      <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
+        <h2 className="text-xl font-semibold text-foreground">Ask a question</h2>
+        {asked === "1" ? (
+          <p className="mt-3 text-sm font-medium text-venturo-olive">
+            Thanks — we&apos;ll reply by email.
+          </p>
+        ) : user ? (
+          <form action={askRoomQuestion} className="mt-3 flex flex-col gap-3">
+            <input type="hidden" name="roomId" value={room.id} />
+            <input type="hidden" name="homeId" value={homeId} />
+            <Field label="Your question">
+              <textarea
+                name="message"
+                required
+                rows={4}
+                className={inputClasses}
+                placeholder={`Ask us anything about ${room.title}…`}
+              />
+            </Field>
+            <Button type="submit" className="self-start">
+              Send question
+            </Button>
+          </form>
+        ) : (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-venturo-olive/15 bg-foreground/5 p-5 text-sm text-foreground/70">
+            <p>Log in to ask a question about this room.</p>
+            <ButtonLink href="/login" variant="secondary" size="sm">
+              Log In
+            </ButtonLink>
+          </div>
+        )}
       </div>
     </Container>
   );
