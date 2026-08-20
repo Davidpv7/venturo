@@ -33,10 +33,13 @@ export async function uploadApplicationDocument(
   });
 }
 
-export async function getApplicationDocumentSignedUrl(doc: ApplicationDocument) {
+export async function getApplicationDocumentSignedUrl(
+  doc: ApplicationDocument,
+  opts?: { download?: boolean },
+) {
   const { data, error } = await createAdminClient()
     .storage.from(APPLICATION_DOCS_BUCKET)
-    .createSignedUrl(doc.path, 300);
+    .createSignedUrl(doc.path, 300, opts?.download ? { download: doc.fileName } : undefined);
   if (error || !data) throw new Error(`Could not create signed URL: ${error?.message}`);
   return data.signedUrl;
 }

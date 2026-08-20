@@ -1,12 +1,15 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { formatFullName, formatWeeklyPrice, toDateInputValue } from "@/lib/format";
 import { getRentDueStatus } from "@/lib/rent-status";
+import { getApplicationDocumentSignedUrl } from "@/lib/application-documents";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { inputClasses } from "@/components/ui/field";
 import { RentDueBadge } from "@/components/rent-due-badge";
-import { markRentPaid } from "./actions";
+import { TenantActionsMenu } from "@/components/admin/tenant-actions-menu";
+import { markRentPaid, terminateLease } from "./actions";
 
 function addDays(date: Date, days: number) {
   const result = new Date(date);
@@ -37,18 +40,44 @@ export default async function AdminTenantsPage() {
       Boolean(entry.contract),
     );
 
+  const tenantsWithDocuments = await Promise.all(
+    tenants.map(async ({ room, contract }) => {
+      const application = await prisma.application.findFirst({
+        where: { userId: contract.userId, roomId: contract.roomId, status: "APPROVED" },
+        orderBy: { submittedAt: "desc" },
+        include: { documents: true },
+      });
+
+      const documents = await Promise.all(
+        (application?.documents ?? []).map(async (doc) => ({
+          id: doc.id,
+          type: doc.type,
+          fileName: doc.fileName,
+          downloadUrl: await getApplicationDocumentSignedUrl(doc, { download: true }),
+        })),
+      );
+
+      return { room, contract, documents };
+    }),
+  );
+
   return (
     <Container size="lg" className="py-16 sm:py-20">
-      <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-        Tenants
-      </h1>
+      <div className="flex items-center justify-between gap-4">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Tenants
+        </h1>
+        <Link href="/admin/tenants/previous" className="text-sm text-venturo-olive hover:underline">
+          View previous tenants →
+        </Link>
+      </div>
       <p className="mt-2 text-sm text-foreground/60">
         Current tenants and their rent status. Tenants pay by manual bank transfer and can mark
         themselves as paid, but you have final say — nothing here is marked Paid until you click
         it yourself.
       </p>
 
-      {tenants.length === 0 ? (
+      {tenantsWithDocuments.length === 0 ? (
         <p className="mt-8 rounded-xl border border-venturo-olive/15 bg-white p-6 text-sm text-foreground/60 shadow-sm">
           No current tenants.
         </p>
@@ -63,10 +92,11 @@ export default async function AdminTenantsPage() {
                 <th className="px-5 py-3 font-medium">Status</th>
                 <th className="px-5 py-3 font-medium">Next due date</th>
                 <th className="px-5 py-3 font-medium">Action</th>
+                <th className="px-5 py-3 font-medium" />
               </tr>
             </thead>
             <tbody>
-              {tenants.map(({ room, contract }) => {
+              {tenantsWithDocuments.map(({ room, contract, documents }) => {
                 const rentCents = contract.overridePriceCents ?? room.price;
                 const status = getRentDueStatus(contract.nextRentDueDate);
                 const defaultNextDueDate = toDateInputValue(
@@ -114,6 +144,15 @@ export default async function AdminTenantsPage() {
                           Mark Paid
                         </Button>
                       </form>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <TenantActionsMenu
+                        tenantName={formatFullName(contract.user) ?? contract.user.email}
+                        contractId={contract.id}
+                        documents={documents}
+                        rentOverdue={status === "OVERDUE"}
+                        terminateAction={terminateLease}
+                      />
                     </td>
                   </tr>
                 );

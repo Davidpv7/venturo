@@ -3,6 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
+import { revalidateRoomPaths } from "@/lib/admin-revalidate";
+import { notifyInterestedUsers } from "@/lib/notify-interested-users";
+import { deleteApplicationDocuments } from "@/lib/application-documents";
 
 export async function markRentPaid(formData: FormData) {
   await requireAdmin();
@@ -21,4 +24,41 @@ export async function markRentPaid(formData: FormData) {
 
   revalidatePath("/admin/tenants");
   revalidatePath("/account/money");
+}
+
+export async function terminateLease(formData: FormData) {
+  await requireAdmin();
+  const contractId = formData.get("contractId") as string;
+  const reason = (formData.get("reason") as string).trim();
+
+  const contract = await prisma.contract.findUniqueOrThrow({ where: { id: contractId } });
+
+  await prisma.$transaction(async (tx) => {
+    const claim = await tx.contract.updateMany({
+      where: { id: contractId, endedAt: null },
+      data: { endedAt: new Date(), terminationReason: reason || null },
+    });
+    if (claim.count === 0) return; // already terminated, stale click
+
+    await tx.room.updateMany({
+      where: { id: contract.roomId, status: "RENTED" },
+      data: { status: "AVAILABLE" },
+    });
+    await notifyInterestedUsers(tx, contract.roomId);
+  });
+
+  // Storage deletion isn't transactional with Postgres, so it runs after the
+  // lease-ending state change commits rather than inside the transaction —
+  // the tenancy should stay ended even if the storage cleanup needs a retry.
+  const application = await prisma.application.findFirst({
+    where: { userId: contract.userId, roomId: contract.roomId, status: "APPROVED" },
+    orderBy: { submittedAt: "desc" },
+  });
+  if (application) {
+    await deleteApplicationDocuments(application.id);
+  }
+
+  revalidateRoomPaths();
+  revalidatePath("/admin/tenants");
+  revalidatePath("/admin/tenants/previous");
 }

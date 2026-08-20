@@ -224,6 +224,12 @@ model Contract {
   rentTenantConfirmedAt DateTime? // tenant clicked "I've Paid"; a signal, not a transaction
   rentLastPaidAt        DateTime? // set only when an admin clicks "Mark Paid"
 
+  // Set when an admin terminates the lease: the room goes back to AVAILABLE
+  // and the tenant's ApplicationDocuments are deleted, but this Contract row
+  // (and the User/Application it points to) is kept as archived history.
+  endedAt           DateTime?
+  terminationReason String? // optional admin-entered note, shown on the previous-tenants archive
+
   user           User            @relation(fields: [userId], references: [id])
   room           Room            @relation(fields: [roomId], references: [id])
   invoices       Invoice[]
