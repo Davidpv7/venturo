@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ModalTrigger } from "@/components/ui/modal";
 import { TerminateLeaseModal } from "@/components/admin/terminate-lease-modal";
 import { APPLICATION_DOCUMENT_TYPE_LABEL } from "@/lib/application-labels";
+import { formatCurrency } from "@/lib/format";
 import type { ApplicationDocumentType } from "@/generated/prisma/client";
 
 type TenantDocument = {
@@ -13,17 +14,30 @@ type TenantDocument = {
   downloadUrl: string;
 };
 
+type RentPayment = {
+  id: string;
+  amountCents: number;
+  paidAt: Date;
+  dueDate: Date;
+};
+
 export function TenantActionsMenu({
   tenantName,
   contractId,
   documents,
   rentOverdue,
+  incompleteMoveOutItems,
+  rentPayments,
+  nextRentDueDate,
   terminateAction,
 }: {
   tenantName: string;
   contractId: string;
   documents: TenantDocument[];
   rentOverdue: boolean;
+  incompleteMoveOutItems: string[];
+  rentPayments: RentPayment[];
+  nextRentDueDate: Date | null;
   terminateAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
@@ -80,10 +94,51 @@ export function TenantActionsMenu({
               )}
             </ModalTrigger>
 
+            <ModalTrigger
+              label="Pay History & Upcoming"
+              title={`${tenantName}'s rent`}
+              triggerClassName="block w-full cursor-pointer px-3 py-2 text-left text-sm text-foreground/80 hover:bg-venturo-olive/5"
+            >
+              <div>
+                <h3 className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                  Upcoming
+                </h3>
+                <p className="mt-1 text-sm text-foreground">
+                  {nextRentDueDate
+                    ? `Next due ${nextRentDueDate.toLocaleDateString("en-AU")}`
+                    : "No due date set yet"}
+                </p>
+              </div>
+
+              <div className="mt-4">
+                <h3 className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                  History
+                </h3>
+                {rentPayments.length === 0 ? (
+                  <p className="mt-1 text-sm text-foreground/60">No payments recorded yet.</p>
+                ) : (
+                  <ul className="mt-2 flex flex-col gap-2 text-sm">
+                    {rentPayments.map((payment) => (
+                      <li key={payment.id} className="flex flex-col">
+                        <span className="font-medium text-foreground">
+                          {formatCurrency(payment.amountCents)} paid{" "}
+                          {payment.paidAt.toLocaleDateString("en-AU")}
+                        </span>
+                        <span className="text-xs text-foreground/50">
+                          For the period due {payment.dueDate.toLocaleDateString("en-AU")}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </ModalTrigger>
+
             <TerminateLeaseModal
               tenantName={tenantName}
               contractId={contractId}
               rentOverdue={rentOverdue}
+              incompleteMoveOutItems={incompleteMoveOutItems}
               action={terminateAction}
               triggerClassName="block w-full cursor-pointer px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
             />

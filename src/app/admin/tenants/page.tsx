@@ -28,7 +28,11 @@ export default async function AdminTenantsPage() {
         where: { depositConfirmed: true },
         orderBy: { agreedAt: "desc" },
         take: 1,
-        include: { user: true },
+        include: {
+          user: true,
+          checklistItems: { where: { stage: "MOVE_OUT" } },
+          rentPayments: { orderBy: { paidAt: "desc" } },
+        },
       },
     },
     orderBy: [{ home: { name: "asc" } }, { title: "asc" }],
@@ -151,6 +155,11 @@ export default async function AdminTenantsPage() {
                         contractId={contract.id}
                         documents={documents}
                         rentOverdue={status === "OVERDUE"}
+                        incompleteMoveOutItems={contract.checklistItems
+                          .filter((item) => !item.completed)
+                          .map((item) => item.label)}
+                        rentPayments={contract.rentPayments}
+                        nextRentDueDate={contract.nextRentDueDate}
                         terminateAction={terminateLease}
                       />
                     </td>

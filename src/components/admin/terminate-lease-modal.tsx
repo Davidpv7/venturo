@@ -12,12 +12,14 @@ export function TerminateLeaseModal({
   tenantName,
   contractId,
   rentOverdue,
+  incompleteMoveOutItems,
   action,
   triggerClassName,
 }: {
   tenantName: string;
   contractId: string;
   rentOverdue: boolean;
+  incompleteMoveOutItems: string[];
   action: (formData: FormData) => void | Promise<void>;
   triggerClassName?: string;
 }) {
@@ -68,6 +70,13 @@ export function TerminateLeaseModal({
             <p className="rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
               This tenant&apos;s rent is currently overdue. Terminating the lease won&apos;t
               collect what&apos;s owed — chase that separately if needed.
+            </p>
+          )}
+
+          {incompleteMoveOutItems.length > 0 && (
+            <p className="rounded-md bg-amber-50 px-3 py-2.5 text-sm text-amber-700">
+              The move-out checklist isn&apos;t fully done yet: {incompleteMoveOutItems.join(", ")}.
+              Terminating won&apos;t check these off automatically.
             </p>
           )}
 

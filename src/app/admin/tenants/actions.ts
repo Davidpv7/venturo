@@ -13,13 +13,29 @@ export async function markRentPaid(formData: FormData) {
   const contractId = formData.get("contractId") as string;
   const nextDueDate = formData.get("nextDueDate") as string;
 
-  await prisma.contract.update({
+  const contract = await prisma.contract.findUniqueOrThrow({
     where: { id: contractId },
-    data: {
-      rentLastPaidAt: new Date(),
-      rentTenantConfirmedAt: null,
-      nextRentDueDate: new Date(`${nextDueDate}T00:00:00.000Z`),
-    },
+    include: { room: true },
+  });
+  const paidAt = new Date();
+
+  await prisma.$transaction(async (tx) => {
+    await tx.rentPayment.create({
+      data: {
+        contractId,
+        amountCents: contract.overridePriceCents ?? contract.room.price,
+        paidAt,
+        dueDate: contract.nextRentDueDate ?? paidAt,
+      },
+    });
+    await tx.contract.update({
+      where: { id: contractId },
+      data: {
+        rentLastPaidAt: paidAt,
+        rentTenantConfirmedAt: null,
+        nextRentDueDate: new Date(`${nextDueDate}T00:00:00.000Z`),
+      },
+    });
   });
 
   revalidatePath("/admin/tenants");

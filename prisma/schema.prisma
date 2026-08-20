@@ -234,6 +234,21 @@ model Contract {
   room           Room            @relation(fields: [roomId], references: [id])
   invoices       Invoice[]
   checklistItems ChecklistItem[]
+  rentPayments   RentPayment[]
+}
+
+// One row per "Mark Paid" click — the append-only history that
+// Contract.rentLastPaidAt (a single overwritten "current status" field)
+// doesn't keep. Deliberately separate from Invoice, which stays scoped to
+// one-off charges per the manual bank-transfer rewrite.
+model RentPayment {
+  id          String   @id @default(uuid())
+  contractId  String
+  amountCents Int // snapshotted from Room.price/overridePriceCents at payment time, so later price changes don't rewrite history
+  paidAt      DateTime @default(now())
+  dueDate     DateTime // the nextRentDueDate this payment settles
+
+  contract Contract @relation(fields: [contractId], references: [id])
 }
 
 enum InvoiceStatus {
