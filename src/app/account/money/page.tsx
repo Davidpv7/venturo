@@ -2,13 +2,13 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { getCurrentContract } from "@/lib/customer-contract";
-import { getInvoiceDisplayStatus } from "@/lib/invoices";
+import { getRentDueStatus } from "@/lib/rent-status";
 import { formatCurrency, formatWeeklyPrice } from "@/lib/format";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ModalTrigger } from "@/components/ui/modal";
-import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
+import { RentDueBadge } from "@/components/rent-due-badge";
+import { RentPaymentStatus } from "@/components/rent-payment-status";
 import { confirmRentPayment } from "./actions";
 
 export default async function MyMoneyPage() {
@@ -32,7 +32,7 @@ export default async function MyMoneyPage() {
     );
   }
 
-  const { room, invoices } = contract;
+  const { room, rentPayments } = contract;
   const rentCents = contract.overridePriceCents ?? room.price;
   const paymentSettings = await prisma.paymentSettings.findUnique({ where: { id: "singleton" } });
 
@@ -88,22 +88,66 @@ export default async function MyMoneyPage() {
             </div>
 
             <div className="mt-4 border-t border-venturo-olive/10 pt-4">
-              {contract.rentTenantConfirmedAt ? (
-                <p className="text-sm text-venturo-olive">
-                  Thanks — you confirmed payment on{" "}
-                  {contract.rentTenantConfirmedAt.toLocaleDateString("en-AU")}. We&apos;ll mark
-                  this paid once it&apos;s received.
-                </p>
-              ) : (
-                <form action={confirmRentPayment} className="flex items-center gap-3">
-                  <Button type="submit" variant="secondary">
-                    I&apos;ve Paid
-                  </Button>
-                  <span className="text-xs text-foreground/50">
-                    Click once you&apos;ve sent the transfer above.
-                  </span>
-                </form>
-              )}
+              <RentPaymentStatus
+                rentTenantConfirmedAt={contract.rentTenantConfirmedAt}
+                confirmAction={confirmRentPayment}
+              />
+            </div>
+
+            <div className="mt-3">
+              <ModalTrigger
+                label="Pay History & Upcoming"
+                title="Pay History & Upcoming"
+                triggerClassName="text-xs font-medium text-venturo-olive hover:underline cursor-pointer"
+              >
+                <div>
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                    Upcoming
+                  </h3>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span className="text-sm text-foreground">
+                      {contract.nextRentDueDate
+                        ? `Next due ${contract.nextRentDueDate.toLocaleDateString("en-AU")}`
+                        : "No due date set yet"}
+                    </span>
+                    {contract.rentTenantConfirmedAt ? (
+                      <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                        Pending confirmation
+                      </span>
+                    ) : (
+                      <RentDueBadge status={getRentDueStatus(contract.nextRentDueDate)} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <h3 className="text-xs font-medium uppercase tracking-wide text-foreground/40">
+                    History
+                  </h3>
+                  {rentPayments.length === 0 ? (
+                    <p className="mt-2 text-sm text-foreground/60">No payments recorded yet.</p>
+                  ) : (
+                    <ul className="mt-2 flex flex-col gap-3">
+                      {rentPayments.map((payment) => (
+                        <li key={payment.id} className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {formatCurrency(payment.amountCents)} paid{" "}
+                              {payment.paidAt.toLocaleDateString("en-AU")}
+                            </p>
+                            <p className="text-xs text-foreground/50">
+                              For the period due {payment.dueDate.toLocaleDateString("en-AU")}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-venturo-olive/10 px-2.5 py-1 text-xs font-medium text-venturo-olive">
+                            Paid
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </ModalTrigger>
             </div>
           </>
         ) : (
@@ -126,31 +170,6 @@ export default async function MyMoneyPage() {
           )}
         </p>
       </Card>
-
-      <section className="mt-10">
-        <h2 className="font-semibold text-foreground">Payment History</h2>
-        {invoices.length === 0 ? (
-          <p className="mt-3 text-sm text-foreground/60">No invoices yet.</p>
-        ) : (
-          <ul className="mt-4 flex flex-col gap-3">
-            {invoices.map((invoice) => (
-              <li
-                key={invoice.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-venturo-olive/15 bg-white p-4 text-sm shadow-sm"
-              >
-                <div>
-                  <p className="font-medium text-foreground">{invoice.number}</p>
-                  <p className="text-foreground/60">
-                    {formatCurrency(invoice.amountCents)} — due{" "}
-                    {invoice.dueDate.toLocaleDateString("en-AU")}
-                  </p>
-                </div>
-                <InvoiceStatusBadge status={getInvoiceDisplayStatus(invoice)} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </Container>
   );
 }

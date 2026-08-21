@@ -12,6 +12,7 @@ export function getCurrentContract(userId: string) {
       room: { include: { home: true } },
       invoices: { orderBy: { dueDate: "asc" } },
       checklistItems: true,
+      rentPayments: { orderBy: { paidAt: "desc" } },
     },
   });
 }
