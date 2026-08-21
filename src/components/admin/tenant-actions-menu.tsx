@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { ModalTrigger } from "@/components/ui/modal";
 import { TerminateLeaseModal } from "@/components/admin/terminate-lease-modal";
+import { ChecklistModal } from "@/components/admin/checklist-modal";
 import { APPLICATION_DOCUMENT_TYPE_LABEL } from "@/lib/application-labels";
 import { formatCurrency } from "@/lib/format";
-import type { ApplicationDocumentType } from "@/generated/prisma/client";
+import type { ApplicationDocumentType, ChecklistItem } from "@/generated/prisma/client";
 
 type TenantDocument = {
   id: string;
@@ -26,19 +27,23 @@ export function TenantActionsMenu({
   contractId,
   documents,
   rentOverdue,
+  checklistItems,
   incompleteMoveOutItems,
   rentPayments,
   nextRentDueDate,
   terminateAction,
+  toggleChecklistItemAction,
 }: {
   tenantName: string;
   contractId: string;
   documents: TenantDocument[];
   rentOverdue: boolean;
+  checklistItems: ChecklistItem[];
   incompleteMoveOutItems: string[];
   rentPayments: RentPayment[];
   nextRentDueDate: Date | null;
   terminateAction: (formData: FormData) => void | Promise<void>;
+  toggleChecklistItemAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -133,6 +138,13 @@ export function TenantActionsMenu({
                 )}
               </div>
             </ModalTrigger>
+
+            <ChecklistModal
+              tenantName={tenantName}
+              items={checklistItems}
+              toggleAction={toggleChecklistItemAction}
+              triggerClassName="block w-full cursor-pointer px-3 py-2 text-left text-sm text-foreground/80 hover:bg-venturo-olive/5"
+            />
 
             <TerminateLeaseModal
               tenantName={tenantName}

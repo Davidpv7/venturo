@@ -42,6 +42,20 @@ export async function markRentPaid(formData: FormData) {
   revalidatePath("/account/money");
 }
 
+export async function toggleChecklistItem(formData: FormData) {
+  await requireAdmin();
+  const itemId = formData.get("itemId") as string;
+  const completed = formData.get("completed") === "true";
+
+  await prisma.checklistItem.update({
+    where: { id: itemId },
+    data: { completed, completedAt: completed ? new Date() : null },
+  });
+
+  revalidatePath("/admin/tenants");
+  revalidatePath("/account");
+}
+
 export async function terminateLease(formData: FormData) {
   await requireAdmin();
   const contractId = formData.get("contractId") as string;

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { inputClasses } from "@/components/ui/field";
 import { RentDueBadge } from "@/components/rent-due-badge";
 import { TenantActionsMenu } from "@/components/admin/tenant-actions-menu";
-import { markRentPaid, terminateLease } from "./actions";
+import { markRentPaid, terminateLease, toggleChecklistItem } from "./actions";
 
 function addDays(date: Date, days: number) {
   const result = new Date(date);
@@ -30,7 +30,7 @@ export default async function AdminTenantsPage() {
         take: 1,
         include: {
           user: true,
-          checklistItems: { where: { stage: "MOVE_OUT" } },
+          checklistItems: true,
           rentPayments: { orderBy: { paidAt: "desc" } },
         },
       },
@@ -155,12 +155,14 @@ export default async function AdminTenantsPage() {
                         contractId={contract.id}
                         documents={documents}
                         rentOverdue={status === "OVERDUE"}
+                        checklistItems={contract.checklistItems}
                         incompleteMoveOutItems={contract.checklistItems
-                          .filter((item) => !item.completed)
+                          .filter((item) => item.stage === "MOVE_OUT" && !item.completed)
                           .map((item) => item.label)}
                         rentPayments={contract.rentPayments}
                         nextRentDueDate={contract.nextRentDueDate}
                         terminateAction={terminateLease}
+                        toggleChecklistItemAction={toggleChecklistItem}
                       />
                     </td>
                   </tr>
