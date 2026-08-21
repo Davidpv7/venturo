@@ -9,7 +9,14 @@ import { Button } from "@/components/ui/button";
 import { inputClasses } from "@/components/ui/field";
 import { RentDueBadge } from "@/components/rent-due-badge";
 import { TenantActionsMenu } from "@/components/admin/tenant-actions-menu";
-import { markRentPaid, terminateLease, toggleChecklistItem } from "./actions";
+import {
+  markRentPaid,
+  terminateLease,
+  toggleChecklistItem,
+  createChecklistItem,
+  updateChecklistItemLabel,
+  deleteChecklistItem,
+} from "./actions";
 
 function addDays(date: Date, days: number) {
   const result = new Date(date);
@@ -163,6 +170,9 @@ export default async function AdminTenantsPage() {
                         nextRentDueDate={contract.nextRentDueDate}
                         terminateAction={terminateLease}
                         toggleChecklistItemAction={toggleChecklistItem}
+                        createChecklistItemAction={createChecklistItem}
+                        updateChecklistItemLabelAction={updateChecklistItemLabel}
+                        deleteChecklistItemAction={deleteChecklistItem}
                       />
                     </td>
                   </tr>

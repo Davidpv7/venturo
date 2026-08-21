@@ -56,6 +56,46 @@ export async function toggleChecklistItem(formData: FormData) {
   revalidatePath("/account");
 }
 
+export async function createChecklistItem(formData: FormData) {
+  await requireAdmin();
+  const contractId = formData.get("contractId") as string;
+  const stage = formData.get("stage") as "MOVE_IN" | "MOVE_OUT";
+  const label = (formData.get("label") as string).trim();
+  if (!label) return;
+
+  await prisma.checklistItem.create({
+    data: { contractId, stage, label },
+  });
+
+  revalidatePath("/admin/tenants");
+  revalidatePath("/account");
+}
+
+export async function updateChecklistItemLabel(formData: FormData) {
+  await requireAdmin();
+  const itemId = formData.get("itemId") as string;
+  const label = (formData.get("label") as string).trim();
+  if (!label) return;
+
+  await prisma.checklistItem.update({
+    where: { id: itemId },
+    data: { label },
+  });
+
+  revalidatePath("/admin/tenants");
+  revalidatePath("/account");
+}
+
+export async function deleteChecklistItem(formData: FormData) {
+  await requireAdmin();
+  const itemId = formData.get("itemId") as string;
+
+  await prisma.checklistItem.delete({ where: { id: itemId } });
+
+  revalidatePath("/admin/tenants");
+  revalidatePath("/account");
+}
+
 export async function terminateLease(formData: FormData) {
   await requireAdmin();
   const contractId = formData.get("contractId") as string;

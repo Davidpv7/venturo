@@ -33,6 +33,9 @@ export function TenantActionsMenu({
   nextRentDueDate,
   terminateAction,
   toggleChecklistItemAction,
+  createChecklistItemAction,
+  updateChecklistItemLabelAction,
+  deleteChecklistItemAction,
 }: {
   tenantName: string;
   contractId: string;
@@ -44,6 +47,9 @@ export function TenantActionsMenu({
   nextRentDueDate: Date | null;
   terminateAction: (formData: FormData) => void | Promise<void>;
   toggleChecklistItemAction: (formData: FormData) => void | Promise<void>;
+  createChecklistItemAction: (formData: FormData) => void | Promise<void>;
+  updateChecklistItemLabelAction: (formData: FormData) => void | Promise<void>;
+  deleteChecklistItemAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
@@ -141,8 +147,12 @@ export function TenantActionsMenu({
 
             <ChecklistModal
               tenantName={tenantName}
+              contractId={contractId}
               items={checklistItems}
               toggleAction={toggleChecklistItemAction}
+              createAction={createChecklistItemAction}
+              updateLabelAction={updateChecklistItemLabelAction}
+              deleteAction={deleteChecklistItemAction}
               triggerClassName="block w-full cursor-pointer px-3 py-2 text-left text-sm text-foreground/80 hover:bg-venturo-olive/5"
             />
 
