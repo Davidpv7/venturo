@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { resendConfirmation } from "./actions";
@@ -38,12 +39,20 @@ export default async function VerifyEmailPage({
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">{error}</p>
         )}
 
-        <form action={resendConfirmation} className="mt-6">
+        <form action={resendConfirmation} className="mt-6 flex flex-col gap-4">
+          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+            <div
+              className="cf-turnstile self-center"
+              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            />
+          )}
           <Button type="submit" variant="secondary" className="w-full">
             Resend confirmation email
           </Button>
         </form>
       </div>
+
+      <Script src="https://challenge.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </div>
   );
 }

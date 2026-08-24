@@ -9,8 +9,13 @@ export async function login(formData: FormData) {
 
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const captchaToken = formData.get("cf-turnstile-response") as string | null;
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    options: { captchaToken: captchaToken || undefined },
+  });
 
   if (error) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
