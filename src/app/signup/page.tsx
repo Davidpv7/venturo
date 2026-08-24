@@ -76,7 +76,7 @@ export default async function SignupPage({
         </Link>
       </p>
 
-      <Script src="https://challenge.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
+      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </div>
   );
 }
