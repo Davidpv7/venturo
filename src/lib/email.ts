@@ -6,9 +6,7 @@ import { Resend } from "resend";
 // in the inbox that's already being checked.
 const ADMIN_EMAIL = "venturo.coliving@gmail.com";
 
-// No verified sending domain yet (see docs/launch-checklist.md) — swap for
-// a verified-domain address once one exists.
-const FROM_EMAIL = "Venturo <onboarding@resend.dev>";
+const FROM_EMAIL = "Venturo <hello@venturocoliving.com.au>";
 
 function getSiteUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
