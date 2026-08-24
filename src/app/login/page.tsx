@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -32,10 +32,7 @@ export default async function LoginPage({
           </Field>
 
           {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-            <div
-              className="cf-turnstile"
-              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-            />
+            <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
           )}
 
           <Button type="submit" className="mt-1">
@@ -60,8 +57,6 @@ export default async function LoginPage({
           Sign up
         </Link>
       </p>
-
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </div>
   );
 }

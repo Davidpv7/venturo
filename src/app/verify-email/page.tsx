@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { resendConfirmation } from "./actions";
 
 export default async function VerifyEmailPage({
@@ -41,18 +41,15 @@ export default async function VerifyEmailPage({
 
         <form action={resendConfirmation} className="mt-6 flex flex-col gap-4">
           {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-            <div
-              className="cf-turnstile self-center"
-              data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-            />
+            <div className="self-center">
+              <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
+            </div>
           )}
           <Button type="submit" variant="secondary" className="w-full">
             Resend confirmation email
           </Button>
         </form>
       </div>
-
-      <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" strategy="lazyOnload" />
     </div>
   );
 }
