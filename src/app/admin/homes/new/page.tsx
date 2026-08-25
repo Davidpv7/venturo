@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/require-admin";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Field, inputClasses } from "@/components/ui/field";
+import { Field, MARKDOWN_HINT, inputClasses } from "@/components/ui/field";
 import { AddressAutocompleteField } from "@/components/admin/address-autocomplete-field";
 import { createHome } from "./actions";
 
@@ -27,7 +27,7 @@ export default async function NewHomePage() {
           <input name="name" type="text" required className={inputClasses} />
         </Field>
         <AddressAutocompleteField />
-        <Field label="Description">
+        <Field label="Description" hint={MARKDOWN_HINT}>
           <textarea name="description" required rows={4} className={inputClasses} />
         </Field>
         <Button type="submit" className="self-start">

@@ -9,6 +9,7 @@ import { Field, inputClasses } from "@/components/ui/field";
 import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { LocationMap } from "@/components/location-map";
+import { DescriptionMarkdown } from "@/components/ui/description-markdown";
 import { startOrResumeApplication, askRoomQuestion } from "./actions";
 
 const DEPOSIT_WINDOW_HOURS = 12;
@@ -163,7 +164,10 @@ export default async function RoomDetailPage({
 
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">
         <h2 className="text-xl font-semibold text-foreground">About this room</h2>
-        <p className="mt-3 leading-relaxed whitespace-pre-line text-foreground/80">{room.description}</p>
+        <DescriptionMarkdown
+          text={room.description}
+          className="mt-3 leading-relaxed text-foreground/80"
+        />
       </div>
 
       <div className="mt-12 max-w-2xl border-t border-venturo-olive/15 pt-10">

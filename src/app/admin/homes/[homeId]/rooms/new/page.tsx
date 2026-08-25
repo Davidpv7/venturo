@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Field, inputClasses } from "@/components/ui/field";
+import { Field, MARKDOWN_HINT, inputClasses } from "@/components/ui/field";
 import { LocationMap } from "@/components/location-map";
 import { SubtitleField } from "@/components/admin/subtitle-field";
 import { createRoom } from "./actions";
@@ -70,7 +70,7 @@ export default async function NewRoomPage({
             className={inputClasses}
           />
         </Field>
-        <Field label="Description">
+        <Field label="Description" hint={MARKDOWN_HINT}>
           <textarea name="description" required rows={4} className={inputClasses} />
         </Field>
         <Button type="submit" className="self-start">

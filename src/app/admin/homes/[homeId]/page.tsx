@@ -5,7 +5,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { formatWeeklyPrice } from "@/lib/format";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
-import { Field, inputClasses } from "@/components/ui/field";
+import { Field, MARKDOWN_HINT, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
 import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import { AddressAutocompleteField } from "@/components/admin/address-autocomplete-field";
@@ -68,7 +68,7 @@ export default async function EditHomePage({
             />
           </Field>
           <AddressAutocompleteField defaultValue={home.address} />
-          <Field label="Description">
+          <Field label="Description" hint={MARKDOWN_HINT}>
             <textarea
               name="description"
               defaultValue={home.description}

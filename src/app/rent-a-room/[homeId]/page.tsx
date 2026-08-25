@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/container";
 import { RoomPhotoGallery } from "@/components/room-photo-gallery";
 import { RoomCard } from "@/components/room-card";
 import { LocationMap } from "@/components/location-map";
+import { DescriptionMarkdown } from "@/components/ui/description-markdown";
 
 export default async function HomeDetailPage({
   params,
@@ -54,7 +55,10 @@ export default async function HomeDetailPage({
           {home.name}
         </h1>
         <p className="mt-2 text-foreground/60">{home.address}</p>
-        <p className="mt-4 leading-relaxed text-foreground/80">{home.description}</p>
+        <DescriptionMarkdown
+          text={home.description}
+          className="mt-4 leading-relaxed text-foreground/80"
+        />
       </div>
 
       <div className="mt-12">

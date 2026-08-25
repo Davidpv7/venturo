@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
-import { Field, inputClasses } from "@/components/ui/field";
+import { Field, MARKDOWN_HINT, inputClasses } from "@/components/ui/field";
 import { PhotoManager } from "@/components/admin/photo-manager";
 import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import { SubtitleField } from "@/components/admin/subtitle-field";
@@ -132,7 +132,7 @@ export default async function EditRoomPage({
               className={inputClasses}
             />
           </Field>
-          <Field label="Description">
+          <Field label="Description" hint={MARKDOWN_HINT}>
             <textarea
               name="description"
               defaultValue={room.description}

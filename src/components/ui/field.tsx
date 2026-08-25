@@ -3,15 +3,21 @@ export const inputClasses =
 
 export function Field({
   label,
+  hint,
   children,
 }: {
   label: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="flex flex-col gap-1.5 text-sm font-medium text-foreground">
       {label}
       {children}
+      {hint ? <span className="text-xs font-normal text-foreground/50">{hint}</span> : null}
     </label>
   );
 }
+
+export const MARKDOWN_HINT =
+  "Supports formatting: **bold**, _italic_, ~~strikethrough~~, - bullet lists, 1. numbered lists, [link](https://...)";
