@@ -6,7 +6,10 @@ import Script from "next/script";
 declare global {
   interface Window {
     turnstile?: {
-      render: (container: HTMLElement, options: { sitekey: string }) => string;
+      render: (
+        container: HTMLElement,
+        options: { sitekey: string; appearance?: "always" | "execute" | "interaction-only" },
+      ) => string;
       remove: (widgetId: string) => void;
     };
   }
@@ -27,7 +30,10 @@ export function TurnstileWidget({ siteKey }: { siteKey: string }) {
 
     function renderWidget() {
       if (cancelled || !containerRef.current || !window.turnstile) return;
-      widgetIdRef.current = window.turnstile.render(containerRef.current, { sitekey: siteKey });
+      widgetIdRef.current = window.turnstile.render(containerRef.current, {
+        sitekey: siteKey,
+        appearance: "interaction-only",
+      });
     }
 
     if (window.turnstile) {
