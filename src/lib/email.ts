@@ -6,7 +6,7 @@ import { Resend } from "resend";
 // in the inbox that's already being checked.
 const ADMIN_EMAIL = "venturo.coliving@gmail.com";
 
-const FROM_EMAIL = "Venturo <hello@venturocoliving.com.au>";
+const FROM_EMAIL = "Venturo <info@venturocoliving.com.au>";
 
 function getSiteUrl() {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
