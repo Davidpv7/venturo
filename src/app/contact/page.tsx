@@ -1,14 +1,15 @@
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { sendContactMessage } from "./actions";
 
 export default async function ContactPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sent?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string }>;
 }) {
-  const { sent } = await searchParams;
+  const { sent, error } = await searchParams;
 
   return (
     <Container className="py-16 sm:py-20">
@@ -38,6 +39,12 @@ export default async function ContactPage({
         </p>
       )}
 
+      {error && (
+        <p className="mt-6 max-w-sm rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
       <form action={sendContactMessage} className="mt-10 flex max-w-sm flex-col gap-4">
         <Field label="Name">
           <input name="name" type="text" required className={inputClasses} />
@@ -48,6 +55,12 @@ export default async function ContactPage({
         <Field label="Message">
           <textarea name="message" required rows={4} className={inputClasses} />
         </Field>
+        {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+          <TurnstileWidget
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            appearance="always"
+          />
+        )}
         <Button type="submit" className="mt-1 self-start">
           Send Message
         </Button>

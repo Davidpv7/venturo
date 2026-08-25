@@ -21,7 +21,13 @@ declare global {
 // elements it finds on its own load ("implicit" mode), so a remounted div
 // would be left without a widget. Rendering explicitly here, tied to this
 // component's own mount/unmount, keeps the widget in sync with React instead.
-export function TurnstileWidget({ siteKey }: { siteKey: string }) {
+export function TurnstileWidget({
+  siteKey,
+  appearance = "interaction-only",
+}: {
+  siteKey: string;
+  appearance?: "always" | "execute" | "interaction-only";
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetIdRef = useRef<string | null>(null);
 
@@ -32,7 +38,7 @@ export function TurnstileWidget({ siteKey }: { siteKey: string }) {
       if (cancelled || !containerRef.current || !window.turnstile) return;
       widgetIdRef.current = window.turnstile.render(containerRef.current, {
         sitekey: siteKey,
-        appearance: "interaction-only",
+        appearance,
       });
     }
 
@@ -52,7 +58,7 @@ export function TurnstileWidget({ siteKey }: { siteKey: string }) {
         window.turnstile.remove(widgetIdRef.current);
       }
     };
-  }, [siteKey]);
+  }, [siteKey, appearance]);
 
   return (
     <>
