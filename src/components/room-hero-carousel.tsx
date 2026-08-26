@@ -129,9 +129,7 @@ export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] })
             <div
               key={home.id}
               style={cardStyle(diff)}
-              className={`absolute top-1/2 left-1/2 aspect-[4/5] w-[85vw] transition-all duration-500 ease-out sm:aspect-[16/10] sm:w-[min(560px,60vw)] ${
-                isCenter ? "" : "hidden sm:block"
-              }`}
+              className="absolute top-1/2 left-1/2 aspect-[4/5] w-[85vw] transition-all duration-500 ease-out sm:aspect-[16/10] sm:w-[min(560px,60vw)]"
             >
               {isCenter ? (
                 <Link
