@@ -2,9 +2,10 @@
 
 import type { FormEvent, ReactNode } from "react";
 
-// Same "did you mean to" confirm step as DeleteIconForm, but for actions
-// that render their own button (e.g. a labelled "Delete Permanently" rather
-// than a bare icon) instead of always rendering a trash icon.
+// Same "did you mean to" confirm step as admin/delete-icon-form.tsx's
+// DeleteIconForm, but for actions that render their own button (e.g. a
+// labelled "Delete Permanently" rather than a bare icon) instead of always
+// rendering a trash icon.
 export function ConfirmForm({
   action,
   confirmMessage,

@@ -8,7 +8,10 @@ import { setUserRole } from "./actions";
 export default async function AdminUsersPage() {
   await requireAdmin();
 
-  const users = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
+  const users = await prisma.user.findMany({
+    where: { deletedAt: null },
+    orderBy: { createdAt: "desc" },
+  });
 
   return (
     <Container size="lg" className="py-16 sm:py-20">

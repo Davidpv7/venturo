@@ -3,24 +3,36 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Field, inputClasses } from "@/components/ui/field";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import {
   updateEmail,
   updateProfile,
   updateEmergencyContact,
   updateNotificationPreferences,
+  deleteAccount,
 } from "./actions";
 
 const emailErrors: Record<string, string> = {
   "confirmation-failed": "That confirmation link is invalid or has expired — try again.",
 };
 
+const deleteErrors: Record<string, string> = {
+  "active-lease":
+    "You have an active lease, so your account can't be deleted yet — contact an admin to end it first.",
+};
+
 export default async function AccountProfilePage({
   searchParams,
 }: {
-  searchParams: Promise<{ emailChangeSent?: string; emailConfirmed?: string; emailError?: string }>;
+  searchParams: Promise<{
+    emailChangeSent?: string;
+    emailConfirmed?: string;
+    emailError?: string;
+    deleteError?: string;
+  }>;
 }) {
   const dbUser = await requireUser();
-  const { emailChangeSent, emailConfirmed, emailError } = await searchParams;
+  const { emailChangeSent, emailConfirmed, emailError, deleteError } = await searchParams;
 
   return (
     <Container size="sm" className="py-16 sm:py-20">
@@ -142,6 +154,28 @@ export default async function AccountProfilePage({
             Save
           </Button>
         </form>
+      </Card>
+
+      <Card className="mt-6 border-red-200">
+        <h2 className="font-semibold text-foreground">Danger Zone</h2>
+        {deleteError && (
+          <p className="mt-3 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            {deleteErrors[deleteError] ?? deleteError}
+          </p>
+        )}
+        <p className="mt-3 text-sm text-foreground/60">
+          Permanently delete your account. Your profile details are removed and you won&apos;t
+          be able to log back in. This can&apos;t be undone.
+        </p>
+        <ConfirmForm
+          action={deleteAccount}
+          confirmMessage="Permanently delete your account? You won't be able to log back in. This cannot be undone."
+          className="mt-4"
+        >
+          <Button type="submit" variant="danger">
+            Delete Account
+          </Button>
+        </ConfirmForm>
       </Card>
     </Container>
   );

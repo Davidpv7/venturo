@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function updateEmail(formData: FormData) {
   await requireUser();
@@ -88,4 +89,47 @@ export async function updateNotificationPreferences(formData: FormData) {
   });
 
   revalidatePath("/account/profile");
+}
+
+export async function deleteAccount() {
+  const dbUser = await requireUser();
+
+  // Same rule as deleting a room out from under a tenant (see
+  // admin/homes/[homeId]/rooms/[roomId]/actions.ts) — an active lease means
+  // someone else (the room, the admin side) still depends on this account.
+  // An admin has to terminate the lease first.
+  const activeLeaseCount = await prisma.contract.count({
+    where: { userId: dbUser.id, endedAt: null },
+  });
+  if (activeLeaseCount > 0) {
+    redirect("/account/profile?deleteError=active-lease");
+  }
+
+  // Contract/Application/Interest/RoomQuestion rows are kept as permanent
+  // history and still point at this userId (that FK is what makes a real
+  // row delete impossible anyway), so this scrubs PII and soft-deletes
+  // instead of removing the row — the same shape as Home/Room's deletedAt.
+  await prisma.user.update({
+    where: { id: dbUser.id },
+    data: {
+      name: null,
+      lastName: null,
+      phone: null,
+      emergencyContactName: null,
+      emergencyContactPhone: null,
+      deletedAt: new Date(),
+    },
+  });
+
+  // Removes their ability to log back in at all — the part of "permanently
+  // delete" that actually matters to the user. Uses the admin client since
+  // a user can't delete their own Supabase auth account via the regular
+  // client SDK.
+  await createAdminClient().auth.admin.deleteUser(dbUser.id);
+
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+
+  revalidatePath("/", "layout");
+  redirect("/login?deleted=1");
 }

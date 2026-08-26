@@ -16,7 +16,7 @@ export async function requireAdmin() {
   if (!user) redirect("/login");
 
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
-  if (!dbUser || dbUser.role !== "ADMIN") redirect("/");
+  if (!dbUser || dbUser.deletedAt || dbUser.role !== "ADMIN") redirect("/");
 
   return dbUser;
 }

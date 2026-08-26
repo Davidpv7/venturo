@@ -53,9 +53,20 @@ export async function signup(formData: FormData) {
     redirect(`/signup?error=${encodeURIComponent(error.message)}`);
   }
 
-  await prisma.user.update({
+  // Normally the Postgres trigger (supabase/sql/001_handle_new_user.sql)
+  // has already inserted the matching public."User" row by the time signUp
+  // resolves. Upsert instead of update so signup doesn't hard-fail if that
+  // trigger is missing or hasn't run yet in this environment.
+  await prisma.user.upsert({
     where: { id: data.user!.id },
-    data: { lastName: lastName || null, termsAcceptedAt: new Date() },
+    update: { lastName: lastName || null, termsAcceptedAt: new Date() },
+    create: {
+      id: data.user!.id,
+      email,
+      name,
+      lastName: lastName || null,
+      termsAcceptedAt: new Date(),
+    },
   });
 
   // With "Confirm email" off, Supabase can return an active session

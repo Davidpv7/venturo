@@ -8,14 +8,20 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; deleted?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, deleted } = await searchParams;
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-6 py-16 sm:py-24">
       <div className="rounded-xl border border-venturo-olive/15 bg-white p-8 shadow-sm">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Log In</h1>
+
+        {deleted && (
+          <p className="mt-4 rounded-md bg-venturo-olive/10 px-3 py-2.5 text-sm text-venturo-olive">
+            Your account has been deleted.
+          </p>
+        )}
 
         {error && (
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">

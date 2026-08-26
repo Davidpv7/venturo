@@ -12,5 +12,16 @@ export async function requireUser() {
 
   if (!user) redirect("/login");
 
-  return prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+
+  // Deleting the Supabase auth user (see deleteAccount) invalidates the
+  // refresh token, but an already-issued access token stays valid until it
+  // expires — so a still-live cookie could otherwise keep reaching pages as
+  // this now-scrubbed account.
+  if (dbUser.deletedAt) {
+    await supabase.auth.signOut();
+    redirect("/login");
+  }
+
+  return dbUser;
 }

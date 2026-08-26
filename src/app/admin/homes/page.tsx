@@ -6,7 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { EditIconLink } from "@/components/ui/icon-action";
 import { DeleteIconForm } from "@/components/admin/delete-icon-form";
-import { ConfirmForm } from "@/components/admin/confirm-form";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import { confirmDeposit, releaseRoom, archiveRoom, unarchiveRoom, markRoomAvailable } from "./actions";
 import { deleteHome, restoreHome, permanentlyDeleteHome } from "./[homeId]/actions";
