@@ -31,7 +31,7 @@ users start signing up.
       reviewed by a qualified Australian lawyer — it's placeholder copy
       modelled on common Australian rental-site conventions, not drafted or
       reviewed by one.
-- [ ] The `/contact` form now verifies Turnstile server-side itself (see
+- [x] The `/contact` form now verifies Turnstile server-side itself (see
       `src/lib/turnstile.ts`) instead of relying on Supabase Auth's built-in
       check, since it doesn't go through Supabase Auth. Add `TURNSTILE_SECRET_KEY`
       (the same real secret key already pasted into Supabase's Attack
