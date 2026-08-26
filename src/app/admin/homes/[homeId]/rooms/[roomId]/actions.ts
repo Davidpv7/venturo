@@ -39,16 +39,16 @@ export async function deleteRoom(formData: FormData) {
     (formData.get("redirectTo") as string | null) || `/admin/homes/${homeId}/rooms/${roomId}`;
   const successRedirect = (formData.get("redirectTo") as string | null) || `/admin/homes/${homeId}`;
 
-  // A room with a signed lease or "notify me" history keeps that history
-  // live against it — point admins at archiveRoom (on the main dashboard)
-  // for that case instead of trashing it.
-  const [contractCount, interestCount] = await Promise.all([
-    prisma.contract.count({ where: { roomId } }),
-    prisma.interest.count({ where: { roomId } }),
-  ]);
+  // An active lease keeps this room's tenant relying on it — point admins at
+  // Tenants to terminate the lease first. Notify-me interest and terminated
+  // lease history never block a soft delete: the room row (and that history)
+  // stays intact in Trash either way.
+  const activeContractCount = await prisma.contract.count({
+    where: { roomId, endedAt: null },
+  });
 
-  if (contractCount > 0 || interestCount > 0) {
-    redirect(`${redirectBase}?error=has-history`);
+  if (activeContractCount > 0) {
+    redirect(`${redirectBase}?error=active-lease`);
   }
 
   // Soft delete rather than a real row delete: keeps the room (and its
@@ -94,18 +94,27 @@ export async function permanentlyDeleteRoom(formData: FormData) {
   const room = await prisma.room.findUnique({ where: { id: roomId } });
   if (!room?.deletedAt) return; // only reachable from the Trash list
 
-  // Belt-and-braces re-check — deleteRoom only trashes a room once this is
-  // already zero, but nothing stops new history landing on it afterwards
-  // outside the normal UI flow.
-  const [contractCount, interestCount] = await Promise.all([
-    prisma.contract.count({ where: { roomId } }),
-    prisma.interest.count({ where: { roomId } }),
-  ]);
-  if (contractCount > 0 || interestCount > 0) {
+  // Belt-and-braces re-check — deleteRoom only trashes a room once the active
+  // lease check below is clear, but nothing stops new history landing on it
+  // afterwards outside the normal UI flow.
+  const activeContractCount = await prisma.contract.count({
+    where: { roomId, endedAt: null },
+  });
+  if (activeContractCount > 0) {
+    redirect("/admin/homes?error=active-lease");
+  }
+
+  // Terminated leases are exactly the tenant record admins want kept —
+  // Contract.roomId is a RESTRICT foreign key, so this room can't be hard-
+  // deleted while any lease history still points at it. Notify-me interest
+  // has no such history value, so it's cleared below instead of blocking.
+  const historicalContractCount = await prisma.contract.count({ where: { roomId } });
+  if (historicalContractCount > 0) {
     redirect("/admin/homes?error=has-history");
   }
 
   await prisma.$transaction([
+    prisma.interest.deleteMany({ where: { roomId } }),
     prisma.photo.deleteMany({ where: { roomId } }),
     prisma.room.delete({ where: { id: roomId } }),
   ]);

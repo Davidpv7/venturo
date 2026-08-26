@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
@@ -81,10 +82,16 @@ export async function archiveRoom(formData: FormData) {
   await requireAdmin();
   const roomId = formData.get("roomId") as string;
 
-  // The `in: [...]` guard is the business rule from the schema notes: never
-  // archive mid-transaction out of PENDING_DEPOSIT.
+  const room = await prisma.room.findUniqueOrThrow({ where: { id: roomId } });
+  if (room.status === "RENTED") {
+    redirect("/admin/homes?error=active-lease");
+  }
+
+  // The `status: "AVAILABLE"` guard is the business rule from the schema
+  // notes: never archive mid-transaction out of PENDING_DEPOSIT, and never
+  // archive out from under an active lease (checked above).
   await prisma.room.updateMany({
-    where: { id: roomId, status: { in: ["AVAILABLE", "RENTED"] } },
+    where: { id: roomId, status: "AVAILABLE" },
     data: { status: "ARCHIVED" },
   });
 

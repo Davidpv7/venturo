@@ -28,7 +28,9 @@ const CHECKLIST_STAGE_LABEL = { MOVE_IN: "Move-in", MOVE_OUT: "Move-out" } as co
 
 const deleteErrors: Record<string, string> = {
   "has-history":
-    "Can't delete a room with a signed lease or notify-me history — use Archive on the admin dashboard instead.",
+    "Can't permanently delete a room with lease history — restore it or leave it archived/in Trash to keep that record.",
+  "active-lease":
+    "This room has an active lease — terminate it from Tenants before archiving or deleting it.",
 };
 
 export default async function EditRoomPage({
@@ -167,9 +169,29 @@ export default async function EditRoomPage({
       {latestContract && (
         <>
           <Card className="mt-10">
-            <h2 className="font-semibold text-foreground">
-              Invoices — {latestContract.user.email}
-            </h2>
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="font-semibold text-foreground">
+                Invoices — {latestContract.user.email}
+              </h2>
+              {latestContract.endedAt ? (
+                <span className="rounded-full bg-foreground/10 px-2.5 py-0.5 text-xs font-medium text-foreground/60">
+                  Lease ended {latestContract.endedAt.toLocaleDateString("en-AU")}
+                </span>
+              ) : (
+                <span className="rounded-full bg-venturo-olive/10 px-2.5 py-0.5 text-xs font-medium text-venturo-olive">
+                  Active lease
+                </span>
+              )}
+            </div>
+            {!latestContract.endedAt && (
+              <p className="mt-1 text-xs text-foreground/50">
+                To terminate this lease before archiving or deleting the room, go to{" "}
+                <Link href="/admin/tenants" className="text-venturo-olive hover:underline">
+                  Tenants
+                </Link>
+                .
+              </p>
+            )}
             {latestContract.invoices.length === 0 ? (
               <p className="mt-3 text-sm text-foreground/60">No invoices yet.</p>
             ) : (

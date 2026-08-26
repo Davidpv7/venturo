@@ -17,7 +17,9 @@ const DEPOSIT_WINDOW_HOURS = 12;
 const deleteErrors: Record<string, string> = {
   "has-rooms": "Can't delete a home that still has rooms — delete its rooms first.",
   "has-history":
-    "Can't delete a room with a signed lease or notify-me history — use Archive instead.",
+    "Can't permanently delete a room with lease history — restore it or leave it archived/in Trash to keep that record.",
+  "active-lease":
+    "This room has an active lease — terminate it from Tenants before archiving or deleting it.",
 };
 
 export default async function AdminHomesPage({

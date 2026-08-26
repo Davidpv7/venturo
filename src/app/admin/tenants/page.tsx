@@ -27,29 +27,21 @@ function addDays(date: Date, days: number) {
 export default async function AdminTenantsPage() {
   await requireAdmin();
 
-  const rooms = await prisma.room.findMany({
-    where: { status: "RENTED", deletedAt: null },
+  // Sourced from Contract, not Room.status: a room's listing status
+  // (archived, or even soft-deleted) shouldn't hide an active tenant — the
+  // lease is what matters here, and it's only ever ended via terminateLease.
+  const contracts = await prisma.contract.findMany({
+    where: { depositConfirmed: true, endedAt: null },
+    orderBy: [{ room: { home: { name: "asc" } } }, { room: { title: "asc" } }],
     include: {
-      home: true,
-      contracts: {
-        where: { depositConfirmed: true },
-        orderBy: { agreedAt: "desc" },
-        take: 1,
-        include: {
-          user: true,
-          checklistItems: true,
-          rentPayments: { orderBy: { paidAt: "desc" } },
-        },
-      },
+      room: { include: { home: true } },
+      user: true,
+      checklistItems: true,
+      rentPayments: { orderBy: { paidAt: "desc" } },
     },
-    orderBy: [{ home: { name: "asc" } }, { title: "asc" }],
   });
 
-  const tenants = rooms
-    .map((room) => ({ room, contract: room.contracts[0] }))
-    .filter((entry): entry is { room: (typeof rooms)[number]; contract: NonNullable<(typeof rooms)[number]["contracts"][number]> } =>
-      Boolean(entry.contract),
-    );
+  const tenants = contracts.map((contract) => ({ room: contract.room, contract }));
 
   const tenantsWithDocuments = await Promise.all(
     tenants.map(async ({ room, contract }) => {
@@ -130,6 +122,15 @@ export default async function AdminTenantsPage() {
                     </td>
                     <td className="px-5 py-4 text-foreground/70">
                       {room.title}
+                      {room.deletedAt ? (
+                        <span className="ml-1.5 text-xs font-medium text-red-600">(Deleted)</span>
+                      ) : (
+                        room.status !== "RENTED" && (
+                          <span className="ml-1.5 text-xs font-medium text-foreground/40">
+                            ({room.status === "ARCHIVED" ? "Archived" : "Room status out of sync"})
+                          </span>
+                        )
+                      )}
                       <div className="text-xs text-foreground/50">{room.home.name}</div>
                     </td>
                     <td className="px-5 py-4 text-foreground/70">{formatWeeklyPrice(rentCents)}</td>
