@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { Interest, Photo, Room } from "@/generated/prisma/client";
 import { formatWeeklyPrice } from "@/lib/format";
+import { allowedLeaseLengths, formatLeaseLengthOptions } from "@/lib/lease-lengths";
 import { createInterest } from "@/app/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 
@@ -52,7 +53,7 @@ export function RoomCard({
             {formatWeeklyPrice(room.price)}
           </span>
           <span className="text-foreground/60">
-            {room.leaseLengthMonths} month lease
+            {formatLeaseLengthOptions(allowedLeaseLengths(room))}
           </span>
         </div>
 

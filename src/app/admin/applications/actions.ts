@@ -60,14 +60,12 @@ export async function approveApplication(formData: FormData) {
       return null;
     }
 
-    const room = await tx.room.findUniqueOrThrow({ where: { id: application.roomId } });
-
     const newContract = await tx.contract.create({
       data: {
         userId: application.userId,
         roomId: application.roomId,
         contractVersion: CONTRACT_VERSION,
-        leaseLengthMonths: room.leaseLengthMonths,
+        leaseLengthMonths: application.intendedStayMonths!,
       },
     });
 

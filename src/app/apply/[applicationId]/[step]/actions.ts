@@ -6,13 +6,17 @@ import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { uploadApplicationDocument } from "@/lib/application-documents";
 import { nextApplicationStep } from "@/lib/application-steps";
+import { allowedLeaseLengths } from "@/lib/lease-lengths";
 import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/prisma/client";
 
 // Every step-save action re-checks ownership and draft status itself, not
 // just relying on the layout guard — Server Actions are directly callable
 // once deployed (see src/lib/require-admin.ts's comment on the same rule).
 async function loadOwnedDraftApplication(dbUserId: string, applicationId: string) {
-  const application = await prisma.application.findUniqueOrThrow({ where: { id: applicationId } });
+  const application = await prisma.application.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: { room: true },
+  });
   if (application.userId !== dbUserId || application.status !== "DRAFT") {
     redirect(`/account/applications/${applicationId}`);
   }
@@ -34,11 +38,16 @@ async function uploadIfPresent(
 export async function saveApplicationPersonal(formData: FormData) {
   const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
-  await loadOwnedDraftApplication(dbUser.id, applicationId);
+  const application = await loadOwnedDraftApplication(dbUser.id, applicationId);
 
   const dateOfBirth = formData.get("dateOfBirth") as string;
   const preferredMoveIn = formData.get("preferredMoveIn") as string;
-  const intendedStayMonths = formData.get("intendedStayMonths") as string;
+  const intendedStayMonths = parseInt(formData.get("intendedStayMonths") as string, 10);
+
+  const roomOptions = allowedLeaseLengths(application.room);
+  if (!roomOptions.includes(intendedStayMonths as (typeof roomOptions)[number])) {
+    redirect(`/apply/${applicationId}/personal?error=invalid-lease-length`);
+  }
 
   await prisma.application.update({
     where: { id: applicationId },
@@ -50,7 +59,7 @@ export async function saveApplicationPersonal(formData: FormData) {
       email: (formData.get("email") as string).trim(),
       currentAddress: (formData.get("currentAddress") as string).trim(),
       preferredMoveIn: preferredMoveIn ? new Date(preferredMoveIn) : null,
-      intendedStayMonths: intendedStayMonths ? parseInt(intendedStayMonths, 10) : null,
+      intendedStayMonths,
     },
   });
 
@@ -147,7 +156,7 @@ export async function submitApplication(formData: FormData) {
   if (!application.email) missing.push("Email");
   if (!application.currentAddress) missing.push("Current address");
   if (!application.preferredMoveIn) missing.push("Preferred move-in date");
-  if (!application.intendedStayMonths) missing.push("Intended length of stay");
+  if (!application.intendedStayMonths) missing.push("Lease length");
 
   if (application.isAustralianCitizen === null) {
     missing.push("Australian citizen / permanent resident answer");

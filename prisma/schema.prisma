@@ -8,18 +8,18 @@ datasource db {
 }
 
 model User {
-  id                    String   @id // matches Supabase Auth's user ID — not a separately generated UUID
-  email                 String   @unique
+  id                    String    @id // matches Supabase Auth's user ID — not a separately generated UUID
+  email                 String    @unique
   name                  String? // first name — set at signup; also the only name column that predates lastName
   lastName              String?
   phone                 String?
-  role                  Role     @default(USER)
+  role                  Role      @default(USER)
   emergencyContactName  String?
   emergencyContactPhone String?
-  notifyEmailUpdates    Boolean  @default(true)
+  notifyEmailUpdates    Boolean   @default(true)
   termsAcceptedAt       DateTime? // set right after sign-up succeeds; null for accounts created before this field existed
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   interests     Interest[]
   contracts     Contract[]
@@ -49,18 +49,20 @@ model Home {
 }
 
 model Room {
-  id                String     @id @default(uuid())
-  title             String
-  subtitle          String? // short admin-written blurb shown under photos; ~15 words, enforced in the UI
-  description       String // amenities, deposit info, etc. described manually — listings are short
-  price             Int // stored in cents to avoid float rounding bugs
-  leaseLengthMonths Int // dropdown options enforced in UI, not the DB
-  status            RoomStatus @default(AVAILABLE)
-  homeId            String
-  pendingSince      DateTime? // set when status flips to PENDING_DEPOSIT, cleared otherwise
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  deletedAt         DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
+  id                  String     @id @default(uuid())
+  title               String
+  subtitle            String? // short admin-written blurb shown under photos; ~15 words, enforced in the UI
+  description         String // amenities, deposit info, etc. described manually — listings are short
+  price               Int // stored in cents to avoid float rounding bugs
+  leaseLength3Months  Boolean    @default(false) // fixed set of 3 (3/6/12 month) options, enforced in UI, not the DB
+  leaseLength6Months  Boolean    @default(true)
+  leaseLength12Months Boolean    @default(false)
+  status              RoomStatus @default(AVAILABLE)
+  homeId              String
+  pendingSince        DateTime? // set when status flips to PENDING_DEPOSIT, cleared otherwise
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  deletedAt           DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
   home          Home           @relation(fields: [homeId], references: [id])
   photos        Photo[]
@@ -169,9 +171,9 @@ model ApplicationDocument {
   // Raw Supabase Storage path, not a public URL — the bucket is private
   // (personal ID docs), unlike Photo.url/Document.url. Signed URLs are
   // generated on demand (src/lib/application-documents.ts).
-  path      String
-  fileName  String
-  createdAt DateTime @default(now())
+  path          String
+  fileName      String
+  createdAt     DateTime                @default(now())
 
   application Application @relation(fields: [applicationId], references: [id])
   // Re-uploading a document of the same type replaces the row in app code

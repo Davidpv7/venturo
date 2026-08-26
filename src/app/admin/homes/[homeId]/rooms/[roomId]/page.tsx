@@ -13,6 +13,7 @@ import { RoomStatusBadge } from "@/components/admin/room-status-badge";
 import { SubtitleField } from "@/components/admin/subtitle-field";
 import { InvoiceStatusBadge } from "@/components/invoice-status-badge";
 import { LocationMap } from "@/components/location-map";
+import { LEASE_LENGTH_OPTIONS, allowedLeaseLengths } from "@/lib/lease-lengths";
 import {
   updateRoom,
   deleteRoom,
@@ -31,6 +32,7 @@ const deleteErrors: Record<string, string> = {
     "Can't permanently delete a room with lease history — restore it or leave it archived/in Trash to keep that record.",
   "active-lease":
     "This room has an active lease — terminate it from Tenants before archiving or deleting it.",
+  "missing-lease-length": "Select at least one lease length option.",
 };
 
 export default async function EditRoomPage({
@@ -102,6 +104,7 @@ export default async function EditRoomPage({
         <h2 className="font-semibold text-foreground">Details</h2>
         <form action={updateRoom} className="mt-4 flex flex-col gap-4">
           <input type="hidden" name="roomId" value={room.id} />
+          <input type="hidden" name="homeId" value={homeId} />
           <Field label="Title">
             <input
               name="title"
@@ -123,17 +126,25 @@ export default async function EditRoomPage({
               className={inputClasses}
             />
           </Field>
-          <Field label="Lease length (months)">
-            <input
-              name="leaseLengthMonths"
-              type="number"
-              step="1"
-              min="1"
-              defaultValue={room.leaseLengthMonths}
-              required
-              className={inputClasses}
-            />
-          </Field>
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-sm font-medium text-foreground">Lease length options</legend>
+            <p className="text-xs text-foreground/60">
+              Select at least one. If you select more than one, the tenant chooses when applying.
+            </p>
+            <div className="flex gap-4 text-sm text-foreground/80">
+              {LEASE_LENGTH_OPTIONS.map((months) => (
+                <label key={months} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name={`leaseLength${months}Months`}
+                    defaultChecked={allowedLeaseLengths(room).includes(months)}
+                    className="h-4 w-4 accent-venturo-olive"
+                  />
+                  {months} months
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <Field label="Description" hint={MARKDOWN_HINT}>
             <textarea
               name="description"

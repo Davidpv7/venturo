@@ -13,7 +13,7 @@ const homes = [
         description:
           "Bright double room, shares the kitchen and living area with the rest of the house.",
         price: 32000, // $320.00/week, in cents
-        leaseLengthMonths: 6,
+        leaseLength6Months: true,
         photos: [
           "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267",
           "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688",
@@ -24,7 +24,7 @@ const homes = [
         description:
           "Quiet single room, great natural light, shared kitchen and living area with easygoing housemates.",
         price: 26000,
-        leaseLengthMonths: 12,
+        leaseLength12Months: true,
         photos: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2"],
       },
     ],
@@ -41,7 +41,7 @@ const homes = [
         description:
           "Spacious master room with private ensuite in a modern co-living house.",
         price: 41000,
-        leaseLengthMonths: 6,
+        leaseLength6Months: true,
         photos: ["https://images.unsplash.com/photo-1505691938895-1758d7feb511"],
       },
     ],

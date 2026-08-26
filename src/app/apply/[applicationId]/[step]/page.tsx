@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
 import { isApplicationStep } from "@/lib/application-steps";
 import { EMPLOYMENT_STATUS_LABEL, APPLICATION_DOCUMENT_TYPE_LABEL } from "@/lib/application-labels";
+import { allowedLeaseLengths } from "@/lib/lease-lengths";
 import {
   saveApplicationPersonal,
   saveApplicationIdentity,
@@ -13,9 +14,9 @@ import {
   saveApplicationReferences,
   submitApplication,
 } from "./actions";
-import type { Application, ApplicationDocument } from "@/generated/prisma/client";
+import type { Application, ApplicationDocument, Room } from "@/generated/prisma/client";
 
-type ApplicationWithDocuments = Application & { documents: ApplicationDocument[] };
+type ApplicationWithDocuments = Application & { documents: ApplicationDocument[]; room: Room };
 
 function toDateInputValue(date: Date | null) {
   return date ? date.toISOString().slice(0, 10) : "";
@@ -36,7 +37,7 @@ export default async function ApplicationStepPage({
 
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
-    include: { documents: true },
+    include: { documents: true, room: true },
   });
   if (!application || application.userId !== dbUser.id) notFound();
 
@@ -53,6 +54,11 @@ export default async function ApplicationStepPage({
             </ul>
           )}
         </div>
+      )}
+      {error === "invalid-lease-length" && (
+        <p className="mb-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+          Select one of the lease lengths offered for this room.
+        </p>
       )}
 
       {step === "personal" && <PersonalStep application={application} />}
@@ -140,32 +146,56 @@ function PersonalStep({ application }: { application: ApplicationWithDocuments }
             className={inputClasses}
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Preferred move-in date">
-            <input
-              name="preferredMoveIn"
-              type="date"
-              required
-              defaultValue={toDateInputValue(application.preferredMoveIn)}
-              className={inputClasses}
-            />
-          </Field>
-          <Field label="Intended length of stay (months)">
-            <input
-              name="intendedStayMonths"
-              type="number"
-              min={1}
-              required
-              defaultValue={application.intendedStayMonths ?? ""}
-              className={inputClasses}
-            />
-          </Field>
-        </div>
+        <Field label="Preferred move-in date">
+          <input
+            name="preferredMoveIn"
+            type="date"
+            required
+            defaultValue={toDateInputValue(application.preferredMoveIn)}
+            className={inputClasses}
+          />
+        </Field>
+        <LeaseLengthField application={application} />
         <Button type="submit" className="mt-2 self-start">
           Save &amp; Continue
         </Button>
       </form>
     </>
+  );
+}
+
+function LeaseLengthField({ application }: { application: ApplicationWithDocuments }) {
+  const options = allowedLeaseLengths(application.room);
+
+  if (options.length <= 1) {
+    const months = options[0] ?? 6;
+    return (
+      <p className="text-sm text-foreground/80">
+        <span className="font-medium text-foreground">Lease length:</span> {months} months
+        <input type="hidden" name="intendedStayMonths" value={months} />
+      </p>
+    );
+  }
+
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-sm font-medium text-foreground">Lease length</legend>
+      <div className="flex gap-4 text-sm text-foreground/80">
+        {options.map((months) => (
+          <label key={months} className="flex items-center gap-2">
+            <input
+              type="radio"
+              name="intendedStayMonths"
+              value={months}
+              required
+              defaultChecked={application.intendedStayMonths === months}
+              className="h-4 w-4 accent-venturo-olive"
+            />
+            {months} months
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
 }
 
@@ -482,7 +512,7 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
             <SummaryRow label="Current address" value={application.currentAddress} />
             <SummaryRow label="Preferred move-in" value={toDateInputValue(application.preferredMoveIn)} />
             <SummaryRow
-              label="Intended stay"
+              label="Lease length"
               value={application.intendedStayMonths ? `${application.intendedStayMonths} months` : null}
             />
           </dl>

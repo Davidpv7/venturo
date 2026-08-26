@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { formatWeeklyPrice } from "@/lib/format";
+import { allowedLeaseLengths, formatLeaseLengthOptions } from "@/lib/lease-lengths";
 import { createInterest } from "@/app/actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
@@ -85,7 +86,7 @@ export default async function RoomDetailPage({
         </h1>
         <p className="mt-2 text-foreground/60">Part of {room.home.name}</p>
         <p className="mt-4 font-medium text-venturo-olive">
-          {formatWeeklyPrice(room.price)} — {room.leaseLengthMonths} month lease
+          {formatWeeklyPrice(room.price)} — {formatLeaseLengthOptions(allowedLeaseLengths(room))}
         </p>
         <p className="mt-4 line-clamp-2 leading-relaxed text-foreground/80">
           {room.subtitle ?? room.description}

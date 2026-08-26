@@ -15,10 +15,25 @@ export async function createRoom(formData: FormData) {
   const subtitle = truncateToWords(subtitleRaw, 15) || null;
   const description = formData.get("description") as string;
   const price = Math.round(parseFloat(formData.get("price") as string) * 100);
-  const leaseLengthMonths = parseInt(formData.get("leaseLengthMonths") as string, 10);
+  const leaseLength3Months = formData.get("leaseLength3Months") === "on";
+  const leaseLength6Months = formData.get("leaseLength6Months") === "on";
+  const leaseLength12Months = formData.get("leaseLength12Months") === "on";
+
+  if (!leaseLength3Months && !leaseLength6Months && !leaseLength12Months) {
+    redirect(`/admin/homes/${homeId}/rooms/new?error=missing-lease-length`);
+  }
 
   const room = await prisma.room.create({
-    data: { homeId, title, subtitle, description, price, leaseLengthMonths },
+    data: {
+      homeId,
+      title,
+      subtitle,
+      description,
+      price,
+      leaseLength3Months,
+      leaseLength6Months,
+      leaseLength12Months,
+    },
   });
 
   revalidateRoomPaths();
