@@ -109,9 +109,16 @@ export async function deleteAccount() {
   // history and still point at this userId (that FK is what makes a real
   // row delete impossible anyway), so this scrubs PII and soft-deletes
   // instead of removing the row — the same shape as Home/Room's deletedAt.
+  // email is unique, so it's scrubbed too (to a placeholder that can't
+  // collide) rather than left as-is: otherwise it permanently blocks the
+  // address from ever signing up again — a re-signup's insert into
+  // public."User" (via the handle_new_user trigger) would violate the
+  // unique constraint and roll back the whole auth.users insert, which
+  // surfaces to the user as an opaque signup failure.
   await prisma.user.update({
     where: { id: dbUser.id },
     data: {
+      email: `deleted-${dbUser.id}@deleted.venturocoliving.invalid`,
       name: null,
       lastName: null,
       phone: null,
