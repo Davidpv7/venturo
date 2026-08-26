@@ -50,12 +50,15 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    // error.message can be a useless "{}" when the failure is a raw network
-    // error rather than a normal Supabase API error response — this is what
-    // shows up unredacted in server logs when that happens, since the
-    // redirect's ?error= param alone doesn't tell us anything in that case.
     console.error("[signup] supabase.auth.signUp failed:", error);
-    redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+    // 5xx errors come from GoTrue/network failures upstream and can carry a
+    // useless message (even a literal "{}"); only 4xx messages (weak
+    // password, already registered, etc.) are meant for the user to read.
+    const message =
+      error.status && error.status >= 500
+        ? "Something went wrong creating your account. Please try again in a moment."
+        : error.message;
+    redirect(`/signup?error=${encodeURIComponent(message)}`);
   }
 
   // Normally the Postgres trigger (supabase/sql/001_handle_new_user.sql)

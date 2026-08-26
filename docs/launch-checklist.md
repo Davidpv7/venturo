@@ -31,6 +31,15 @@ users start signing up.
       reviewed by a qualified Australian lawyer — it's placeholder copy
       modelled on common Australian rental-site conventions, not drafted or
       reviewed by one.
+- [ ] Supabase Dashboard → Authentication → Emails → SMTP Settings → configure
+      Custom SMTP using Resend (same verified domain used by
+      `src/lib/email.ts`) instead of Supabase's default/shared mailer.
+      Discovered 2026-08-26: repeated signups for the same unconfirmed email
+      within a few minutes returned a raw 500 from GoTrue (rendered as a
+      useless literal `"{}"` in the UI before the `signup/actions.ts` fix) —
+      consistent with Supabase's built-in mailer's very low free-tier rate
+      limit, since Resend was only ever wired up for the app's own
+      transactional emails, not Supabase Auth's confirmation emails.
 - [x] The `/contact` form now verifies Turnstile server-side itself (see
       `src/lib/turnstile.ts`) instead of relying on Supabase Auth's built-in
       check, since it doesn't go through Supabase Auth. Add `TURNSTILE_SECRET_KEY`
