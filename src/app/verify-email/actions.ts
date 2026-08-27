@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function resendConfirmation(formData: FormData) {
   const supabase = await createClient();
@@ -14,10 +15,16 @@ export async function resendConfirmation(formData: FormData) {
 
   const captchaToken = formData.get("cf-turnstile-response") as string | null;
 
+  const verified = await verifyTurnstileToken(captchaToken);
+  if (!verified) {
+    redirect(
+      `/verify-email?error=${encodeURIComponent("Verification failed. Please try again.")}`,
+    );
+  }
+
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: user.email,
-    options: { captchaToken: captchaToken || undefined },
   });
 
   if (error) {

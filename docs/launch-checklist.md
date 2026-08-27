@@ -45,6 +45,23 @@ users start signing up.
       check, since it doesn't go through Supabase Auth. Add `TURNSTILE_SECRET_KEY`
       (the same real secret key already pasted into Supabase's Attack
       Protection settings) to Vercel project env vars, Production environment.
+- [ ] Added 2026-08-27: signup and verify-email/resend now verify Turnstile
+      manually via `verifyTurnstileToken()` (same pattern as `/contact`)
+      instead of relying on Supabase Auth's built-in CAPTCHA check, so that
+      login can be captcha-free — Supabase's Attack Protection CAPTCHA
+      toggle is global and can't be scoped to signup only. **Must** turn
+      OFF Supabase Dashboard → Authentication → Attack Protection → "Enable
+      CAPTCHA protection" in the same deploy window as this code change —
+      leaving it on would reject login (which stops sending a token) and
+      double-reject signup/resend (which now verify manually, not via the
+      option Supabase used to check).
+- [ ] Added 2026-08-27: run `npx tsx prisma/scrub-stale-deleted-emails.ts`
+      against production once. Fixes accounts soft-deleted before `8eead4a`
+      (which still hold their original, un-scrubbed email) so they don't
+      collide with a real re-signup via the unique `email` constraint — see
+      the fix in `signup/actions.ts` / `require-user.ts` for why this
+      previously surfaced as a crash after the confirmation email was
+      already sent.
 
 ## Already fixed, no action needed
 

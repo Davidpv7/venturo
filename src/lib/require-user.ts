@@ -12,7 +12,34 @@ export async function requireUser() {
 
   if (!user) redirect("/login");
 
-  const dbUser = await prisma.user.findUniqueOrThrow({ where: { id: user.id } });
+  let dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+
+  if (!dbUser) {
+    try {
+      // Self-heals a missing public."User" row — either the
+      // handle_new_user trigger isn't installed/hasn't run yet, or the
+      // signup-time fallback upsert failed (see signup/actions.ts).
+      dbUser = await prisma.user.create({
+        data: {
+          id: user.id,
+          email: user.email!,
+          name: (user.user_metadata?.name as string | undefined) ?? null,
+        },
+      });
+    } catch (err) {
+      // A concurrent request (e.g. two tabs) may have created the row
+      // first — re-check before treating this as a real failure.
+      dbUser = await prisma.user.findUnique({ where: { id: user.id } });
+      if (!dbUser) {
+        // Most likely a real unique-constraint collision: this email is
+        // still occupied by a stale soft-deleted row.
+        console.error("[requireUser] self-heal create failed:", err);
+        redirect(
+          `/login?error=${encodeURIComponent("We couldn't finish setting up your account. Please try again in a moment or contact support.")}`,
+        );
+      }
+    }
+  }
 
   // Deleting the Supabase auth user (see deleteAccount) invalidates the
   // refresh token, but an already-issued access token stays valid until it

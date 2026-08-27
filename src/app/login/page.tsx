@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
 import { GoogleAuthButton } from "@/components/auth/google-auth-button";
-import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { login } from "./actions";
 
 export default async function LoginPage({
@@ -36,10 +35,6 @@ export default async function LoginPage({
           <Field label="Password">
             <input name="password" type="password" required className={inputClasses} />
           </Field>
-
-          {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
-            <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
-          )}
 
           <Button type="submit" className="mt-1">
             Log In
