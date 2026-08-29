@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
+import { isLeaseActive } from "@/lib/lease";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 
@@ -7,10 +8,17 @@ export default async function AnnouncementsPage() {
   const dbUser = await requireUser();
 
   const contracts = await prisma.contract.findMany({
-    where: { userId: dbUser.id },
-    select: { room: { select: { homeId: true } } },
+    where: { userId: dbUser.id, endedAt: null },
+    select: {
+      endedAt: true,
+      agreedAt: true,
+      leaseLengthMonths: true,
+      room: { select: { homeId: true } },
+    },
   });
-  const homeIds = [...new Set(contracts.map((contract) => contract.room.homeId))];
+  const homeIds = [
+    ...new Set(contracts.filter(isLeaseActive).map((contract) => contract.room.homeId)),
+  ];
 
   const announcements = homeIds.length
     ? await prisma.announcement.findMany({

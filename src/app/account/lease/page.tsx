@@ -40,25 +40,6 @@ export default async function LeaseAgreementPage({
     );
   }
 
-  const expired = !contract.leaseSigned && contract.endedAt != null;
-
-  if (expired) {
-    return (
-      <Container size="sm" className="py-16 sm:py-20">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Lease Agreement
-        </h1>
-        <p className="mt-4 text-sm text-foreground/60">
-          This lease offer has expired and the room has been released. Please{" "}
-          <Link href="/rent-a-room" className="font-medium text-venturo-olive hover:underline">
-            browse available rooms
-          </Link>{" "}
-          to apply again.
-        </p>
-      </Container>
-    );
-  }
-
   const [application, paymentSettings] = await Promise.all([
     prisma.application.findFirst({
       where: { userId: dbUser.id, roomId: contract.roomId, status: "APPROVED" },
