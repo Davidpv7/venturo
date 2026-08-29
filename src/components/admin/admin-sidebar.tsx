@@ -26,11 +26,13 @@ export function AdminSidebar({
   unreadQuestionCount = 0,
   pendingApplicationCount = 0,
   overdueRentCount = 0,
+  signedLeaseAwaitingDepositCount = 0,
 }: {
   unreadMessageCount?: number;
   unreadQuestionCount?: number;
   pendingApplicationCount?: number;
   overdueRentCount?: number;
+  signedLeaseAwaitingDepositCount?: number;
 }) {
   const pathname = usePathname();
 
@@ -39,6 +41,7 @@ export function AdminSidebar({
     "/admin/questions": unreadQuestionCount,
     "/admin/applications": pendingApplicationCount,
     "/admin/tenants": overdueRentCount,
+    "/admin/homes": signedLeaseAwaitingDepositCount,
   };
 
   return (
