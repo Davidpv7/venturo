@@ -10,15 +10,23 @@ export async function confirmDeposit(formData: FormData) {
   await requireAdmin();
   const roomId = formData.get("roomId") as string;
 
+  const room = await prisma.room.findUniqueOrThrow({ where: { id: roomId } });
+  if (room.status !== "PENDING_DEPOSIT") return; // stale click, ignore
+
+  const contract = await prisma.contract.findFirstOrThrow({
+    where: { roomId, depositConfirmed: false },
+    orderBy: { agreedAt: "desc" },
+  });
+
+  // The room can't go RENTED without a signed lease on file, even if an
+  // admin clicks this before the tenant has signed — defense in depth,
+  // same reasoning requireAdmin's own comment gives for checks living
+  // inside the action itself.
+  if (!contract.leaseSigned) {
+    redirect("/admin/homes?error=lease-not-signed");
+  }
+
   await prisma.$transaction(async (tx) => {
-    const room = await tx.room.findUniqueOrThrow({ where: { id: roomId } });
-    if (room.status !== "PENDING_DEPOSIT") return; // stale click, ignore
-
-    const contract = await tx.contract.findFirstOrThrow({
-      where: { roomId, depositConfirmed: false },
-      orderBy: { agreedAt: "desc" },
-    });
-
     const now = new Date();
     const nextRentDueDate = new Date(now);
     nextRentDueDate.setDate(nextRentDueDate.getDate() + 7);
@@ -41,9 +49,10 @@ export async function releaseRoom(formData: FormData) {
   await requireAdmin();
   const roomId = formData.get("roomId") as string;
 
-  // Deliberately left as a manual admin action rather than an automated
-  // 12-hour job — matches the project's "fine to check manually at this
-  // scale" decision. The unconfirmed Contract row is left in place as
+  // The lease-expiry cron (src/lib/lease-expiry.ts) now handles this
+  // automatically once a Contract's expiresAt passes — this stays as a
+  // manual override so an admin can release a room early without waiting
+  // on the deadline. The unconfirmed Contract row is left in place as
   // history, same as Interest rows never get deleted.
   await prisma.$transaction(async (tx) => {
     const claim = await tx.room.updateMany({

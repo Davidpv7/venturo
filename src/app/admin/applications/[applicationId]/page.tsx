@@ -5,10 +5,17 @@ import { getApplicationDocumentSignedUrl } from "@/lib/application-documents";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Field, inputClasses } from "@/components/ui/field";
 import { ApplicationStatusBadge } from "@/components/application-status-badge";
 import { EMPLOYMENT_STATUS_LABEL, APPLICATION_DOCUMENT_TYPE_LABEL } from "@/lib/application-labels";
-import { formatFullName } from "@/lib/format";
+import { formatFullName, toDateInputValue } from "@/lib/format";
 import { markUnderReview, approveApplication, rejectApplication } from "../actions";
+
+const DECISION_ERRORS: Record<string, string> = {
+  "room-unavailable":
+    "This room is no longer available — someone else's application already claimed it. Reject this application or pick a different room.",
+  "invalid-bond-or-date": "Enter a valid bond amount and lease start date before approving.",
+};
 
 function SummaryRow({ label, value }: { label: string; value: string | null }) {
   return (
@@ -55,11 +62,9 @@ export default async function AdminApplicationDetailPage({
         <ApplicationStatusBadge status={application.status} />
       </div>
 
-      {error === "room-unavailable" && (
+      {error && DECISION_ERRORS[error] && (
         <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
-          This room is no longer available — someone else&apos;s application
-          already claimed it. Reject this application or pick a different
-          room.
+          {DECISION_ERRORS[error]}
         </p>
       )}
 
@@ -177,9 +182,30 @@ export default async function AdminApplicationDetailPage({
           )}
           {(application.status === "SUBMITTED" || application.status === "UNDER_REVIEW") && (
             <>
-              <form action={approveApplication}>
+              <form action={approveApplication} className="flex flex-wrap items-end gap-3">
                 <input type="hidden" name="applicationId" value={application.id} />
-                <Button type="submit">Approve</Button>
+                <Field label="Bond ($)">
+                  <input
+                    type="number"
+                    name="bondDollars"
+                    min="1"
+                    step="1"
+                    required
+                    className={`${inputClasses} w-28`}
+                  />
+                </Field>
+                <Field label="Lease start date">
+                  <input
+                    type="date"
+                    name="leaseStartDate"
+                    required
+                    defaultValue={
+                      application.preferredMoveIn ? toDateInputValue(application.preferredMoveIn) : undefined
+                    }
+                    className={`${inputClasses} w-40`}
+                  />
+                </Field>
+                <Button type="submit">Approve &amp; Send Lease</Button>
               </form>
               <form action={rejectApplication}>
                 <input type="hidden" name="applicationId" value={application.id} />

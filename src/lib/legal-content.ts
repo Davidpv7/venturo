@@ -4,9 +4,8 @@ export type LegalSection = { heading: string; body: string[] };
 // room-rental/property sites and the Privacy Act 1988 (Cth) / Australian
 // Privacy Principles, but not drafted or reviewed by a lawyer. Replace with
 // Venturo's actual reviewed Terms before this app goes live (see
-// CONTRACT_VERSION's own placeholder note in
-// src/app/rent-a-room/[homeId]/[roomId]/actions.ts for the same caveat
-// applied to the lease contract itself).
+// LEASE_VERSION's own placeholder note in src/lib/lease-content.ts for the
+// same caveat applied to the lease contract itself).
 export const TERMS_LAST_UPDATED = "17 August 2026";
 
 export const TERMS_SECTIONS: LegalSection[] = [

@@ -113,6 +113,12 @@ export default async function AdminTenantsPage() {
                         {formatFullName(contract.user) ?? contract.user.email}
                       </div>
                       <div className="text-xs text-foreground/50">{contract.user.email}</div>
+                      <Link
+                        href={`/admin/leases/${contract.id}`}
+                        className="mt-1 inline-block text-xs text-venturo-olive hover:underline"
+                      >
+                        View lease
+                      </Link>
                       {contract.rentTenantConfirmedAt && (
                         <div className="mt-1 text-xs font-medium text-venturo-olive">
                           Tenant marked paid on{" "}

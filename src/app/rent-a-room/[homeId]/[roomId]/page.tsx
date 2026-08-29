@@ -13,8 +13,6 @@ import { LocationMap } from "@/components/location-map";
 import { DescriptionMarkdown } from "@/components/ui/description-markdown";
 import { startOrResumeApplication, askRoomQuestion } from "./actions";
 
-const DEPOSIT_WINDOW_HOURS = 12;
-
 export default async function RoomDetailPage({
   params,
   searchParams,
@@ -63,10 +61,6 @@ export default async function RoomDetailPage({
       Log in to get notified
     </ButtonLink>
   );
-  const depositDeadline = room.pendingSince
-    ? new Date(room.pendingSince.getTime() + DEPOSIT_WINDOW_HOURS * 60 * 60 * 1000)
-    : null;
-
   return (
     <Container className="py-16 sm:py-20">
       <Link
@@ -126,21 +120,18 @@ export default async function RoomDetailPage({
         {room.status === "PENDING_DEPOSIT" && myContract && (
           <div className="mt-6 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5 text-sm text-foreground/80">
             <p className="leading-relaxed">
-              Next step: pay the deposit before{" "}
-              <strong>{depositDeadline?.toLocaleString("en-AU")}</strong> (
-              {DEPOSIT_WINDOW_HOURS} hours from signing). Deposits are handled
-              manually — email{" "}
-              <a
-                href="mailto:venturo.coliving@gmail.com"
-                className="text-venturo-olive underline"
-              >
-                venturo.coliving@gmail.com
-              </a>{" "}
-              or call{" "}
-              <a href="tel:0434682864" className="text-venturo-olive underline">
-                0434 682 864
-              </a>{" "}
-              for bank transfer details.
+              Next step: {myContract.leaseSigned ? "pay the deposit" : "sign your lease and pay the deposit"}
+              {myContract.expiresAt && (
+                <>
+                  {" "}
+                  before <strong>{myContract.expiresAt.toLocaleString("en-AU")}</strong>
+                </>
+              )}
+              .{" "}
+              <Link href="/account/lease" className="text-venturo-olive underline">
+                Go to your lease agreement
+              </Link>
+              .
             </p>
           </div>
         )}

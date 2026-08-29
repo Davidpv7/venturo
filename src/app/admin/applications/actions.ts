@@ -6,11 +6,11 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/require-admin";
 import { revalidateRoomPaths } from "@/lib/admin-revalidate";
 import { sendEmail, applicationApprovedEmail, applicationRejectedEmail } from "@/lib/email";
+import { LEASE_VERSION } from "@/lib/lease-content";
 
-// Placeholder until the real T&Cs document exists — every contract approved
-// under the current terms gets tagged with this so future versions can
-// change without rewriting history.
-const CONTRACT_VERSION = "v1.0";
+// Both must be completed within this window (see lease-expiry cron) or the
+// room is released back to AVAILABLE.
+const LEASE_SIGN_WINDOW_HOURS = 24;
 
 const MOVE_IN_CHECKLIST_ITEMS = [
   "Keys handed over",
@@ -41,10 +41,21 @@ export async function approveApplication(formData: FormData) {
   await requireAdmin();
   const applicationId = formData.get("applicationId") as string;
 
+  const bondDollars = Number(formData.get("bondDollars"));
+  const leaseStartDateRaw = formData.get("leaseStartDate") as string;
+  const leaseStartDate = leaseStartDateRaw ? new Date(leaseStartDateRaw) : null;
+
+  if (!Number.isFinite(bondDollars) || bondDollars <= 0 || !leaseStartDate || Number.isNaN(leaseStartDate.getTime())) {
+    redirect(`/admin/applications/${applicationId}?error=invalid-bond-or-date`);
+  }
+  const bondCents = Math.round(bondDollars * 100);
+
   const application = await prisma.application.findUniqueOrThrow({
     where: { id: applicationId },
     include: { user: true, room: { include: { home: true } } },
   });
+
+  const expiresAt = new Date(Date.now() + LEASE_SIGN_WINDOW_HOURS * 60 * 60 * 1000);
 
   // Conditional update + create, both inside one transaction: the `where`
   // clause only matches if the room is still AVAILABLE, so approving into a
@@ -64,8 +75,11 @@ export async function approveApplication(formData: FormData) {
       data: {
         userId: application.userId,
         roomId: application.roomId,
-        contractVersion: CONTRACT_VERSION,
+        contractVersion: LEASE_VERSION,
         leaseLengthMonths: application.intendedStayMonths!,
+        bondCents,
+        leaseStartDate,
+        expiresAt,
       },
     });
 
@@ -103,8 +117,7 @@ export async function approveApplication(formData: FormData) {
   const { subject, html, text } = applicationApprovedEmail(
     application.room.title,
     application.room.home.name,
-    application.room.homeId,
-    application.roomId,
+    expiresAt,
   );
   await sendEmail({ to: application.user.email, subject, html, text });
 }

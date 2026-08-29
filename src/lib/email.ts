@@ -71,12 +71,22 @@ export function contactMessageEmail(name: string, email: string, message: string
   };
 }
 
-export function applicationApprovedEmail(roomTitle: string, homeName: string, homeId: string, roomId: string) {
-  const roomUrl = `${getSiteUrl()}/rent-a-room/${homeId}/${roomId}`;
+export function applicationApprovedEmail(roomTitle: string, homeName: string, expiresAt: Date) {
+  const leaseUrl = `${getSiteUrl()}/account/lease`;
+  const deadline = expiresAt.toLocaleString("en-AU");
   return {
-    subject: "Your application has been approved",
-    text: `Congratulations — your application for ${roomTitle} at ${homeName} has been approved. Next step: pay the deposit. Details here: ${roomUrl}`,
-    html: `<p>Congratulations — your application for ${roomTitle} at ${homeName} has been approved.</p><p>Next step: pay the deposit. Details here:</p><p><a href="${roomUrl}">${roomUrl}</a></p>`,
+    subject: "Your application has been approved — sign your lease",
+    text: `Congratulations — your application for ${roomTitle} at ${homeName} has been approved. Next steps: sign your lease and pay the deposit, both by ${deadline}, or the room will be released. Sign here: ${leaseUrl}`,
+    html: `<p>Congratulations — your application for ${roomTitle} at ${homeName} has been approved.</p><p>Next steps: sign your lease and pay the deposit, both by <strong>${deadline}</strong>, or the room will be released.</p><p><a href="${leaseUrl}">${leaseUrl}</a></p>`,
+  };
+}
+
+export function leaseExpiredEmail(roomTitle: string, homeName: string) {
+  const roomsUrl = `${getSiteUrl()}/rent-a-room`;
+  return {
+    subject: "Your room reservation has expired",
+    text: `Your reservation for ${roomTitle} at ${homeName} has expired because the lease wasn't signed and/or the deposit wasn't received in time, so the room has been released. Browse other rooms here: ${roomsUrl}`,
+    html: `<p>Your reservation for ${roomTitle} at ${homeName} has expired because the lease wasn't signed and/or the deposit wasn't received in time, so the room has been released.</p><p><a href="${roomsUrl}">Browse other rooms</a></p>`,
   };
 }
 

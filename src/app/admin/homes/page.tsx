@@ -12,14 +12,13 @@ import { confirmDeposit, releaseRoom, archiveRoom, unarchiveRoom, markRoomAvaila
 import { deleteHome, restoreHome, permanentlyDeleteHome } from "./[homeId]/actions";
 import { deleteRoom, restoreRoom, permanentlyDeleteRoom } from "./[homeId]/rooms/[roomId]/actions";
 
-const DEPOSIT_WINDOW_HOURS = 12;
-
 const deleteErrors: Record<string, string> = {
   "has-rooms": "Can't delete a home that still has rooms — delete its rooms first.",
   "has-history":
     "Can't permanently delete a room with lease history — restore it or leave it archived/in Trash to keep that record.",
   "active-lease":
     "This room has an active lease — terminate it from Tenants before archiving or deleting it.",
+  "lease-not-signed": "Can't confirm the deposit until the tenant has signed their lease.",
 };
 
 export default async function AdminHomesPage({
@@ -36,7 +35,10 @@ export default async function AdminHomesPage({
       include: {
         rooms: {
           where: { deletedAt: null },
-          include: { interests: { where: { notifiedAt: null } } },
+          include: {
+            interests: { where: { notifiedAt: null } },
+            contracts: { where: { endedAt: null }, orderBy: { agreedAt: "desc" }, take: 1 },
+          },
           orderBy: { createdAt: "desc" },
         },
       },
@@ -103,11 +105,7 @@ export default async function AdminHomesPage({
               </thead>
               <tbody>
                 {home.rooms.map((room) => {
-                  const deadline = room.pendingSince
-                    ? new Date(
-                        room.pendingSince.getTime() + DEPOSIT_WINDOW_HOURS * 60 * 60 * 1000,
-                      )
-                    : null;
+                  const pendingContract = room.status === "PENDING_DEPOSIT" ? room.contracts[0] : undefined;
 
                   return (
                     <tr key={room.id} className="border-b border-venturo-olive/10 align-top last:border-b-0">
@@ -121,9 +119,21 @@ export default async function AdminHomesPage({
                       </td>
                       <td className="px-5 py-4">
                         <RoomStatusBadge status={room.status} />
-                        {deadline && (
+                        {pendingContract && (
                           <div className="mt-1.5 text-xs text-foreground/50">
-                            deposit due {deadline.toLocaleString("en-AU")}
+                            {pendingContract.leaseSigned ? (
+                              <Link
+                                href={`/admin/leases/${pendingContract.id}`}
+                                className="text-venturo-olive hover:underline"
+                              >
+                                lease signed — view
+                              </Link>
+                            ) : (
+                              "lease not signed yet"
+                            )}
+                            {pendingContract.expiresAt && (
+                              <> · due {pendingContract.expiresAt.toLocaleString("en-AU")}</>
+                            )}
                           </div>
                         )}
                         {room.interests.length > 0 && (

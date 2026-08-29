@@ -2,6 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { getCurrentContract } from "@/lib/customer-contract";
+import { ButtonLink } from "@/components/ui/button";
 import { getLeaseEndDate, getDaysRemaining } from "@/lib/lease";
 import { formatWeeklyPrice } from "@/lib/format";
 import { Container } from "@/components/ui/container";
@@ -76,6 +77,25 @@ export default async function MyStayPage() {
       <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         My Stay
       </h1>
+
+      {(!contract.leaseSigned || !contract.depositConfirmed) && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-venturo-olive/25 bg-venturo-cream-alt p-5">
+          <p className="text-sm text-foreground/80">
+            {!contract.leaseSigned
+              ? "Your application was approved — sign your lease and pay the deposit to secure this room."
+              : "Lease signed — pay the deposit to secure this room."}
+            {contract.expiresAt && (
+              <>
+                {" "}
+                Due by <strong>{contract.expiresAt.toLocaleString("en-AU")}</strong>.
+              </>
+            )}
+          </p>
+          <ButtonLink href="/account/lease" size="sm">
+            {contract.leaseSigned ? "View Lease" : "Sign Lease Agreement"}
+          </ButtonLink>
+        </div>
+      )}
 
       <Card className="mt-8">
         <h2 className="font-semibold text-foreground">{room.title}</h2>

@@ -8,19 +8,20 @@ datasource db {
 }
 
 model User {
-  id                    String    @id // matches Supabase Auth's user ID — not a separately generated UUID
-  email                 String    @unique
-  name                  String? // first name — set at signup; also the only name column that predates lastName
-  lastName              String?
-  phone                 String?
-  role                  Role      @default(USER)
-  emergencyContactName  String?
-  emergencyContactPhone String?
-  notifyEmailUpdates    Boolean   @default(true)
-  termsAcceptedAt       DateTime? // set right after sign-up succeeds; null for accounts created before this field existed
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  deletedAt             DateTime? // set when the user deletes their account. The row itself is kept (PII scrubbed)
+  id                           String    @id // matches Supabase Auth's user ID — not a separately generated UUID
+  email                        String    @unique
+  name                         String? // first name — set at signup; also the only name column that predates lastName
+  lastName                     String?
+  phone                        String?
+  role                         Role      @default(USER)
+  emergencyContactName         String?
+  emergencyContactPhone        String?
+  emergencyContactRelationship String?
+  notifyEmailUpdates           Boolean   @default(true)
+  termsAcceptedAt              DateTime? // set right after sign-up succeeds; null for accounts created before this field existed
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
+  deletedAt                    DateTime? // set when the user deletes their account. The row itself is kept (PII scrubbed)
   // rather than hard-deleted, since Contract/Application rows are permanent
   // history (see Contract.endedAt comment) and their userId FK would block a
   // real delete anyway — same soft-delete shape as Home/Room.deletedAt.
@@ -230,9 +231,31 @@ model Contract {
   rentTenantConfirmedAt DateTime? // tenant clicked "I've Paid"; a signal, not a transaction
   rentLastPaidAt        DateTime? // set only when an admin clicks "Mark Paid"
 
+  // Lease-signing + deposit window, set together at approval time
+  // (approveApplication). Both must be done before expiresAt or the
+  // lease-expiry cron releases the room back to AVAILABLE.
+  expiresAt      DateTime? // null for Contract rows created before this feature existed
+  bondCents      Int? // admin-entered per-tenant at approval time, mirrors overridePriceCents' shape
+  leaseStartDate DateTime? // Term-section start date; distinct from agreedAt (the approval timestamp)
+
+  // Signature block — boolean+timestamp pair mirrors depositConfirmed/
+  // depositConfirmedAt so it can be queried the same way.
+  leaseSigned     Boolean   @default(false)
+  leaseSignedAt   DateTime?
+  leaseSignedName String? // typed full legal name at signature time
+  leaseSignedIp   String? // captured from the signing request
+
+  // Schedule B fields the app doesn't collect anywhere else, gathered on
+  // the lease-signing page itself.
+  governmentIdType    GovernmentIdType?
+  governmentIdNumber  String?
+  vehicleRegistration String? // optional, per the source document
+  insuranceProvider   String? // optional, per the source document
+
   // Set when an admin terminates the lease: the room goes back to AVAILABLE
   // and the tenant's ApplicationDocuments are deleted, but this Contract row
   // (and the User/Application it points to) is kept as archived history.
+  // Also set by the lease-expiry cron when the sign/deposit window lapses.
   endedAt           DateTime?
   terminationReason String? // optional admin-entered note, shown on the previous-tenants archive
 
@@ -241,6 +264,12 @@ model Contract {
   invoices       Invoice[]
   checklistItems ChecklistItem[]
   rentPayments   RentPayment[]
+}
+
+enum GovernmentIdType {
+  DRIVERS_LICENCE
+  PASSPORT
+  OTHER
 }
 
 // One row per "Mark Paid" click — the append-only history that
