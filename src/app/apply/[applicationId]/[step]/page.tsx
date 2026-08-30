@@ -2,9 +2,13 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
-import { isApplicationStep } from "@/lib/application-steps";
+import {
+  isApplicationStep,
+  previousApplicationStep,
+  type ApplicationStep,
+} from "@/lib/application-steps";
 import { EMPLOYMENT_STATUS_LABEL, APPLICATION_DOCUMENT_TYPE_LABEL } from "@/lib/application-labels";
 import { allowedLeaseLengths } from "@/lib/lease-lengths";
 import {
@@ -27,11 +31,11 @@ export default async function ApplicationStepPage({
   searchParams,
 }: {
   params: Promise<{ applicationId: string; step: string }>;
-  searchParams: Promise<{ error?: string; missing?: string; detail?: string }>;
+  searchParams: Promise<{ error?: string; missing?: string; detail?: string; success?: string }>;
 }) {
   const dbUser = await requireVerifiedUser();
   const { applicationId, step } = await params;
-  const { error, missing, detail } = await searchParams;
+  const { error, missing, detail, success } = await searchParams;
 
   if (!isApplicationStep(step)) notFound();
 
@@ -65,6 +69,11 @@ export default async function ApplicationStepPage({
           {detail || "That file couldn't be uploaded. Please try a different file."}
         </p>
       )}
+      {!error && success === "uploaded" && (
+        <p className="mb-6 rounded-md bg-green-50 px-3 py-2.5 text-sm text-green-700">
+          File uploaded.
+        </p>
+      )}
 
       {step === "personal" && <PersonalStep application={application} />}
       {step === "identity" && <IdentityStep application={application} />}
@@ -72,6 +81,31 @@ export default async function ApplicationStepPage({
       {step === "references" && <ReferencesStep application={application} />}
       {step === "review" && <ReviewStep application={application} />}
     </Card>
+  );
+}
+
+// Shared Back/Continue controls — Back is a plain navigation Link (not a
+// submit control), so it never triggers the surrounding form's save action.
+function StepFormFooter({
+  applicationId,
+  step,
+}: {
+  applicationId: string;
+  step: ApplicationStep;
+}) {
+  const previousStep = previousApplicationStep(step);
+  return (
+    <div className="mt-2 flex items-center gap-3">
+      {previousStep && (
+        <ButtonLink
+          href={`/apply/${applicationId}/${previousStep}`}
+          variant="secondary"
+        >
+          Back
+        </ButtonLink>
+      )}
+      <Button type="submit">Save &amp; Continue</Button>
+    </div>
   );
 }
 
@@ -161,9 +195,7 @@ function PersonalStep({ application }: { application: ApplicationWithDocuments }
           />
         </Field>
         <LeaseLengthField application={application} />
-        <Button type="submit" className="mt-2 self-start">
-          Save &amp; Continue
-        </Button>
+        <StepFormFooter applicationId={application.id} step="personal" />
       </form>
     </>
   );
@@ -185,7 +217,7 @@ function LeaseLengthField({ application }: { application: ApplicationWithDocumen
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="text-sm font-medium text-foreground">Lease length</legend>
-      <div className="flex gap-4 text-sm text-foreground/80">
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-foreground/80">
         {options.map((months) => (
           <label key={months} className="flex items-center gap-2">
             <input
@@ -214,7 +246,9 @@ function ExistingDocumentNote({
   const doc = application.documents.find((d) => d.type === type);
   if (!doc) return null;
   return (
-    <p className="text-xs text-venturo-olive">Uploaded: {doc.fileName} — choose a new file to replace it.</p>
+    <p className="break-words text-xs text-venturo-olive">
+      Uploaded: {doc.fileName} — choose a new file to replace it.
+    </p>
   );
 }
 
@@ -223,7 +257,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
     <>
       <StepHeading
         title="Identity verification"
-        description="Upload a primary photo ID. A secondary ID is optional. If you're not an Australian citizen or permanent resident, also upload your visa grant notice."
+        description="Upload a primary photo ID. A secondary ID is optional."
       />
       <form action={saveApplicationIdentity} className="flex flex-col gap-5">
         <input type="hidden" name="applicationId" value={application.id} />
@@ -232,7 +266,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
           <legend className="text-sm font-medium text-foreground">
             Are you an Australian citizen or permanent resident?
           </legend>
-          <div className="flex gap-4 text-sm text-foreground/80">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-foreground/80">
             <label className="flex items-center gap-2">
               <input
                 type="radio"
@@ -276,19 +310,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
         </Field>
         <ExistingDocumentNote application={application} type="SECONDARY_ID" />
 
-        <Field label="Visa grant notice (if not a citizen/permanent resident)">
-          <input
-            name="visaGrantNotice"
-            type="file"
-            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
-            className={inputClasses}
-          />
-        </Field>
-        <ExistingDocumentNote application={application} type="VISA_GRANT_NOTICE" />
-
-        <Button type="submit" className="mt-2 self-start">
-          Save &amp; Continue
-        </Button>
+        <StepFormFooter applicationId={application.id} step="identity" />
       </form>
     </>
   );
@@ -359,9 +381,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
         </Field>
         <ExistingDocumentNote application={application} type="ENROLMENT_CONFIRMATION" />
 
-        <Button type="submit" className="mt-2 self-start">
-          Save &amp; Continue
-        </Button>
+        <StepFormFooter applicationId={application.id} step="income" />
       </form>
     </>
   );
@@ -475,9 +495,7 @@ function ReferencesStep({ application }: { application: ApplicationWithDocuments
           />
         </Field>
 
-        <Button type="submit" className="mt-2 self-start">
-          Save &amp; Continue
-        </Button>
+        <StepFormFooter applicationId={application.id} step="references" />
       </form>
     </>
   );
@@ -487,7 +505,7 @@ function SummaryRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex flex-col gap-0.5 py-2 sm:flex-row sm:justify-between">
       <dt className="text-foreground/50">{label}</dt>
-      <dd className="font-medium text-foreground sm:text-right">{value || "—"}</dd>
+      <dd className="break-words font-medium text-foreground sm:text-right">{value || "—"}</dd>
     </div>
   );
 }
@@ -580,7 +598,7 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
           {documentLabels.length === 0 ? (
             <p className="mt-2 text-sm text-foreground/60">No documents uploaded yet.</p>
           ) : (
-            <ul className="mt-2 list-inside list-disc text-sm text-foreground/80">
+            <ul className="mt-2 list-inside list-disc break-words text-sm text-foreground/80">
               {documentLabels.map((label) => (
                 <li key={label}>{label}</li>
               ))}
@@ -594,7 +612,12 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
             Once submitted, you won&apos;t be able to edit this application — we&apos;ll be in
             touch once it&apos;s been reviewed.
           </p>
-          <Button type="submit">Submit Application</Button>
+          <div className="flex items-center gap-3">
+            <ButtonLink href={`/apply/${application.id}/references`} variant="secondary">
+              Back
+            </ButtonLink>
+            <Button type="submit">Submit Application</Button>
+          </div>
         </form>
       </div>
     </>

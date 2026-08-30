@@ -17,3 +17,8 @@ export function nextApplicationStep(step: ApplicationStep): ApplicationStep {
   const index = APPLICATION_STEPS.indexOf(step);
   return APPLICATION_STEPS[index + 1] ?? "review";
 }
+
+export function previousApplicationStep(step: ApplicationStep): ApplicationStep | null {
+  const index = APPLICATION_STEPS.indexOf(step);
+  return index > 0 ? APPLICATION_STEPS[index - 1] : null;
+}

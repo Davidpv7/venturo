@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
-import { uploadApplicationDocument } from "@/lib/application-documents";
+import { uploadApplicationDocument, deleteApplicationDocuments } from "@/lib/application-documents";
 import { nextApplicationStep, type ApplicationStep } from "@/lib/application-steps";
 import { allowedLeaseLengths } from "@/lib/lease-lengths";
 import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/prisma/client";
@@ -38,7 +38,9 @@ async function uploadIfPresent(
       const message = err instanceof Error ? err.message : "That file couldn't be uploaded.";
       redirect(`/apply/${applicationId}/${step}?error=upload-failed&detail=${encodeURIComponent(message)}`);
     }
+    return true;
   }
+  return false;
 }
 
 export async function saveApplicationPersonal(formData: FormData) {
@@ -89,12 +91,12 @@ export async function saveApplicationIdentity(formData: FormData) {
     data: { isAustralianCitizen },
   });
 
-  await uploadIfPresent(applicationId, "identity", formData, "primaryId", "PRIMARY_ID");
-  await uploadIfPresent(applicationId, "identity", formData, "secondaryId", "SECONDARY_ID");
-  await uploadIfPresent(applicationId, "identity", formData, "visaGrantNotice", "VISA_GRANT_NOTICE");
+  const uploadedPrimary = await uploadIfPresent(applicationId, "identity", formData, "primaryId", "PRIMARY_ID");
+  const uploadedSecondary = await uploadIfPresent(applicationId, "identity", formData, "secondaryId", "SECONDARY_ID");
 
   revalidatePath(`/apply/${applicationId}`, "layout");
-  redirect(`/apply/${applicationId}/${nextApplicationStep("identity")}`);
+  const suffix = uploadedPrimary || uploadedSecondary ? "?success=uploaded" : "";
+  redirect(`/apply/${applicationId}/${nextApplicationStep("identity")}${suffix}`);
 }
 
 export async function saveApplicationIncome(formData: FormData) {
@@ -113,11 +115,18 @@ export async function saveApplicationIncome(formData: FormData) {
     },
   });
 
-  await uploadIfPresent(applicationId, "income", formData, "proofOfIncome", "PROOF_OF_INCOME");
-  await uploadIfPresent(applicationId, "income", formData, "enrolmentConfirmation", "ENROLMENT_CONFIRMATION");
+  const uploadedIncome = await uploadIfPresent(applicationId, "income", formData, "proofOfIncome", "PROOF_OF_INCOME");
+  const uploadedEnrolment = await uploadIfPresent(
+    applicationId,
+    "income",
+    formData,
+    "enrolmentConfirmation",
+    "ENROLMENT_CONFIRMATION",
+  );
 
   revalidatePath(`/apply/${applicationId}`, "layout");
-  redirect(`/apply/${applicationId}/${nextApplicationStep("income")}`);
+  const suffix = uploadedIncome || uploadedEnrolment ? "?success=uploaded" : "";
+  redirect(`/apply/${applicationId}/${nextApplicationStep("income")}${suffix}`);
 }
 
 export async function saveApplicationReferences(formData: FormData) {
@@ -145,6 +154,23 @@ export async function saveApplicationReferences(formData: FormData) {
   redirect(`/apply/${applicationId}/${nextApplicationStep("references")}`);
 }
 
+export async function deleteApplication(formData: FormData) {
+  const dbUser = await requireVerifiedUser();
+  const applicationId = formData.get("applicationId") as string;
+  // Only draft applications can be deleted this way — once submitted, an
+  // admin is reviewing it (rejectApplication already has its own deletion
+  // path via the cleanup cron).
+  await loadOwnedDraftApplication(dbUser.id, applicationId);
+
+  // Same ordering as cleanupRejectedApplications: no onDelete: Cascade in
+  // the schema, so documents (DB rows + Storage objects) must go first.
+  await deleteApplicationDocuments(applicationId);
+  await prisma.application.delete({ where: { id: applicationId } });
+
+  revalidatePath("/account/applications");
+  redirect("/account/applications");
+}
+
 export async function submitApplication(formData: FormData) {
   const dbUser = await requireVerifiedUser();
   const applicationId = formData.get("applicationId") as string;
@@ -168,9 +194,6 @@ export async function submitApplication(formData: FormData) {
     missing.push("Australian citizen / permanent resident answer");
   }
   if (!hasDocument("PRIMARY_ID")) missing.push("Primary ID upload");
-  if (application.isAustralianCitizen === false && !hasDocument("VISA_GRANT_NOTICE")) {
-    missing.push("Visa grant notice upload");
-  }
 
   if (!application.employmentStatus) {
     missing.push("Employment status");

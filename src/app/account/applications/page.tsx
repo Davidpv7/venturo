@@ -3,8 +3,10 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
 import { Container } from "@/components/ui/container";
 import { Card } from "@/components/ui/card";
-import { ButtonLink } from "@/components/ui/button";
+import { ButtonLink, Button } from "@/components/ui/button";
 import { ApplicationStatusBadge } from "@/components/application-status-badge";
+import { ConfirmForm } from "@/components/ui/confirm-form";
+import { deleteApplication } from "@/app/apply/[applicationId]/[step]/actions";
 
 export default async function ApplicationsPage() {
   const dbUser = await requireUser();
@@ -53,6 +55,17 @@ export default async function ApplicationsPage() {
                 >
                   {application.status === "DRAFT" ? "Resume" : "View"}
                 </ButtonLink>
+                {application.status === "DRAFT" && (
+                  <ConfirmForm
+                    action={deleteApplication}
+                    confirmMessage="Delete this application? This can't be undone."
+                  >
+                    <input type="hidden" name="applicationId" value={application.id} />
+                    <Button type="submit" variant="danger" size="sm">
+                      Delete
+                    </Button>
+                  </ConfirmForm>
+                )}
               </div>
             </Card>
           ))}

@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Container } from "@/components/ui/container";
 import { ApplicationStepNav } from "@/components/apply/application-step-nav";
+import { ConfirmForm } from "@/components/ui/confirm-form";
+import { Button } from "@/components/ui/button";
+import { deleteApplication } from "./[step]/actions";
 
 export default async function ApplyLayout({
   children,
@@ -36,7 +39,18 @@ export default async function ApplyLayout({
       </p>
 
       <div className="mt-8 flex flex-col gap-8 sm:flex-row">
-        <ApplicationStepNav applicationId={applicationId} />
+        <div className="flex shrink-0 flex-col gap-4 sm:w-56">
+          <ApplicationStepNav applicationId={applicationId} />
+          <ConfirmForm
+            action={deleteApplication}
+            confirmMessage="Delete this application? This can't be undone."
+          >
+            <input type="hidden" name="applicationId" value={applicationId} />
+            <Button type="submit" variant="danger" size="sm">
+              Delete application
+            </Button>
+          </ConfirmForm>
+        </div>
         <div className="min-w-0 flex-1">{children}</div>
       </div>
     </Container>
