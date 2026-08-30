@@ -4,6 +4,7 @@ import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClasses } from "@/components/ui/field";
+import { FileUploadField } from "@/components/apply/file-upload-field";
 import {
   isApplicationStep,
   previousApplicationStep,
@@ -291,21 +292,17 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
         </fieldset>
 
         <Field label="Primary ID (passport or driver's licence)">
-          <input
+          <FileUploadField
             name="primaryId"
-            type="file"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
-            className={inputClasses}
           />
         </Field>
         <ExistingDocumentNote application={application} type="PRIMARY_ID" />
 
         <Field label="Secondary ID (optional)">
-          <input
+          <FileUploadField
             name="secondaryId"
-            type="file"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
-            className={inputClasses}
           />
         </Field>
         <ExistingDocumentNote application={application} type="SECONDARY_ID" />
@@ -362,21 +359,17 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
         </div>
 
         <Field label="Proof of income (payslip or bank statement)">
-          <input
+          <FileUploadField
             name="proofOfIncome"
-            type="file"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
-            className={inputClasses}
           />
         </Field>
         <ExistingDocumentNote application={application} type="PROOF_OF_INCOME" />
 
         <Field label="Enrolment confirmation (students only)">
-          <input
+          <FileUploadField
             name="enrolmentConfirmation"
-            type="file"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
-            className={inputClasses}
           />
         </Field>
         <ExistingDocumentNote application={application} type="ENROLMENT_CONFIRMATION" />
