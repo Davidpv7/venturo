@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { APPLICATION_STEPS, APPLICATION_STEP_LABEL } from "@/lib/application-steps";
 
-function CheckIcon() {
+function CheckIcon({ className }: { className: string }) {
   return (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5" aria-hidden="true">
+    <svg viewBox="0 0 16 16" fill="none" className={className} aria-hidden="true">
       <path
         d="M3.5 8.5L6.5 11.5L12.5 4.5"
         stroke="currentColor"
@@ -41,7 +41,7 @@ export function ApplicationStepNav({ applicationId }: { applicationId: string })
                   aria-label={`${index + 1}. ${APPLICATION_STEP_LABEL[step]}`}
                   aria-current={active ? "step" : undefined}
                   className={[
-                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors",
                     active
                       ? "bg-venturo-olive text-white ring-2 ring-venturo-olive/30 ring-offset-2 ring-offset-venturo-cream"
                       : completed
@@ -49,13 +49,13 @@ export function ApplicationStepNav({ applicationId }: { applicationId: string })
                         : "bg-venturo-olive/15 text-venturo-olive/70 hover:bg-venturo-olive/25",
                   ].join(" ")}
                 >
-                  {completed ? <CheckIcon /> : index + 1}
+                  {completed ? <CheckIcon className="h-4 w-4" /> : index + 1}
                 </Link>
                 {!isLast && (
                   <span
                     aria-hidden="true"
                     className={[
-                      "mx-1 h-0.5 flex-1 rounded-full transition-colors",
+                      "mx-1 h-1 flex-1 rounded-full transition-colors",
                       completed ? "bg-venturo-olive/80" : "bg-venturo-olive/15",
                     ].join(" ")}
                   />
@@ -101,7 +101,7 @@ export function ApplicationStepNav({ applicationId }: { applicationId: string })
                         : "bg-venturo-olive/15 text-foreground/40",
                   ].join(" ")}
                 >
-                  {completed ? <CheckIcon /> : index + 1}
+                  {completed ? <CheckIcon className="h-3.5 w-3.5" /> : index + 1}
                 </span>
                 {APPLICATION_STEP_LABEL[step]}
               </Link>
