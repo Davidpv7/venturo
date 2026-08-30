@@ -17,6 +17,7 @@ declare global {
         },
       ) => string;
       remove: (widgetId: string) => void;
+      reset: (widgetId: string) => void;
     };
   }
 }
@@ -61,7 +62,16 @@ export function TurnstileWidget({
         appearance,
         callback: () => setReady(true),
         "expired-callback": () => setReady(false),
-        "error-callback": () => setReady(false),
+        // Errors here are typically transient (flaky mobile network, a
+        // content blocker interfering with one request) rather than
+        // permanent — resetting retries the challenge instead of leaving
+        // the button disabled with no way forward.
+        "error-callback": () => {
+          setReady(false);
+          if (widgetIdRef.current && window.turnstile) {
+            window.turnstile.reset(widgetIdRef.current);
+          }
+        },
       });
     }
 

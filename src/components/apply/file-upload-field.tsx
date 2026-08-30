@@ -5,7 +5,7 @@ import { inputClasses } from "@/components/ui/field";
 
 function CheckIcon() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" className="h-3.5 w-3.5 shrink-0" aria-hidden="true">
+    <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3 shrink-0" aria-hidden="true">
       <path
         d="M3.5 8.5L6.5 11.5L12.5 4.5"
         stroke="currentColor"

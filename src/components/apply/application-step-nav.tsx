@@ -49,7 +49,7 @@ export function ApplicationStepNav({ applicationId }: { applicationId: string })
                         : "bg-venturo-olive/15 text-venturo-olive/70 hover:bg-venturo-olive/25",
                   ].join(" ")}
                 >
-                  {completed ? <CheckIcon className="h-4 w-4" /> : index + 1}
+                  {completed ? <CheckIcon className="h-4 w-4 text-black" /> : index + 1}
                 </Link>
                 {!isLast && (
                   <span
@@ -101,7 +101,7 @@ export function ApplicationStepNav({ applicationId }: { applicationId: string })
                         : "bg-venturo-olive/15 text-foreground/40",
                   ].join(" ")}
                 >
-                  {completed ? <CheckIcon className="h-3.5 w-3.5" /> : index + 1}
+                  {completed ? <CheckIcon className="h-3.5 w-3.5 text-black" /> : index + 1}
                 </span>
                 {APPLICATION_STEP_LABEL[step]}
               </Link>
