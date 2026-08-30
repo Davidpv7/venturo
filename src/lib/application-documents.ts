@@ -13,6 +13,17 @@ const ALLOWED_MIME_TYPES = [
 ];
 const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024;
 
+// Supabase Storage rejects object keys containing characters outside a
+// narrow set, so accented letters, apostrophes, "&", etc. in a phone's
+// auto-generated filename (e.g. "IMG_1234 (résumé).pdf") fail with "Invalid
+// key". The original name is kept separately in `fileName` for display.
+function sanitizeStorageFileName(name: string) {
+  return name
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\w.-]+/g, "-");
+}
+
 export async function uploadApplicationDocument(
   applicationId: string,
   type: ApplicationDocumentType,
@@ -26,7 +37,7 @@ export async function uploadApplicationDocument(
   }
 
   const supabase = createAdminClient();
-  const path = `${applicationId}/${type}/${crypto.randomUUID()}-${file.name}`;
+  const path = `${applicationId}/${type}/${crypto.randomUUID()}-${sanitizeStorageFileName(file.name)}`;
   const { error } = await supabase.storage
     .from(APPLICATION_DOCS_BUCKET)
     .upload(path, file, { contentType: file.type });
