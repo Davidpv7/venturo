@@ -6,15 +6,48 @@ import { APPLICATION_STEPS, APPLICATION_STEP_LABEL } from "@/lib/application-ste
 
 export function ApplicationStepNav({ applicationId }: { applicationId: string }) {
   const pathname = usePathname();
+  const currentIndex = APPLICATION_STEPS.findIndex(
+    (step) => pathname === `/apply/${applicationId}/${step}`,
+  );
 
   return (
     <nav className="shrink-0 sm:w-56">
-      <ol className="flex gap-1 overflow-x-auto text-sm sm:flex-col sm:gap-0.5">
+      {/* Mobile: segmented progress bar instead of a scrolling pill row. */}
+      <div className="sm:hidden">
+        <ol className="flex items-center gap-1.5">
+          {APPLICATION_STEPS.map((step, index) => {
+            const href = `/apply/${applicationId}/${step}`;
+            const active = index === currentIndex;
+            return (
+              <li key={step} className="flex-1">
+                <Link
+                  href={href}
+                  aria-label={`${index + 1}. ${APPLICATION_STEP_LABEL[step]}`}
+                  aria-current={active ? "step" : undefined}
+                  className={[
+                    "block h-1.5 rounded-full transition-colors",
+                    active ? "bg-venturo-olive" : "bg-venturo-olive/15",
+                  ].join(" ")}
+                />
+              </li>
+            );
+          })}
+        </ol>
+        {currentIndex >= 0 && (
+          <p className="mt-2 text-sm font-medium text-foreground">
+            Step {currentIndex + 1} of {APPLICATION_STEPS.length}:{" "}
+            {APPLICATION_STEP_LABEL[APPLICATION_STEPS[currentIndex]]}
+          </p>
+        )}
+      </div>
+
+      {/* Desktop: full vertical sidebar list. */}
+      <ol className="hidden text-sm sm:flex sm:flex-col sm:gap-0.5">
         {APPLICATION_STEPS.map((step, index) => {
           const href = `/apply/${applicationId}/${step}`;
           const active = pathname === href;
           return (
-            <li key={step} className="shrink-0 sm:shrink">
+            <li key={step}>
               <Link
                 href={href}
                 className={[

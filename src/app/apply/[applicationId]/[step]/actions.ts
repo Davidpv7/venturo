@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { uploadApplicationDocument } from "@/lib/application-documents";
-import { nextApplicationStep } from "@/lib/application-steps";
+import { nextApplicationStep, type ApplicationStep } from "@/lib/application-steps";
 import { allowedLeaseLengths } from "@/lib/lease-lengths";
 import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/prisma/client";
 
@@ -25,13 +25,19 @@ async function loadOwnedDraftApplication(dbUserId: string, applicationId: string
 
 async function uploadIfPresent(
   applicationId: string,
+  step: ApplicationStep,
   formData: FormData,
   fieldName: string,
   type: ApplicationDocumentType,
 ) {
   const file = formData.get(fieldName);
   if (file instanceof File && file.size > 0) {
-    await uploadApplicationDocument(applicationId, type, file);
+    try {
+      await uploadApplicationDocument(applicationId, type, file);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "That file couldn't be uploaded.";
+      redirect(`/apply/${applicationId}/${step}?error=upload-failed&detail=${encodeURIComponent(message)}`);
+    }
   }
 }
 
@@ -83,9 +89,9 @@ export async function saveApplicationIdentity(formData: FormData) {
     data: { isAustralianCitizen },
   });
 
-  await uploadIfPresent(applicationId, formData, "primaryId", "PRIMARY_ID");
-  await uploadIfPresent(applicationId, formData, "secondaryId", "SECONDARY_ID");
-  await uploadIfPresent(applicationId, formData, "visaGrantNotice", "VISA_GRANT_NOTICE");
+  await uploadIfPresent(applicationId, "identity", formData, "primaryId", "PRIMARY_ID");
+  await uploadIfPresent(applicationId, "identity", formData, "secondaryId", "SECONDARY_ID");
+  await uploadIfPresent(applicationId, "identity", formData, "visaGrantNotice", "VISA_GRANT_NOTICE");
 
   revalidatePath(`/apply/${applicationId}`, "layout");
   redirect(`/apply/${applicationId}/${nextApplicationStep("identity")}`);
@@ -107,8 +113,8 @@ export async function saveApplicationIncome(formData: FormData) {
     },
   });
 
-  await uploadIfPresent(applicationId, formData, "proofOfIncome", "PROOF_OF_INCOME");
-  await uploadIfPresent(applicationId, formData, "enrolmentConfirmation", "ENROLMENT_CONFIRMATION");
+  await uploadIfPresent(applicationId, "income", formData, "proofOfIncome", "PROOF_OF_INCOME");
+  await uploadIfPresent(applicationId, "income", formData, "enrolmentConfirmation", "ENROLMENT_CONFIRMATION");
 
   revalidatePath(`/apply/${applicationId}`, "layout");
   redirect(`/apply/${applicationId}/${nextApplicationStep("income")}`);

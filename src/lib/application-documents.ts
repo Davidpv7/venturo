@@ -2,7 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient, APPLICATION_DOCS_BUCKET } from "@/lib/supabase/admin";
 import type { ApplicationDocument, ApplicationDocumentType } from "@/generated/prisma/client";
 
-const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+// Includes HEIC/HEIF since iPhones capture camera photos in that format by
+// default — without it, every mobile camera upload would be rejected.
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/heic",
+  "image/heif",
+];
+const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024;
 
 export async function uploadApplicationDocument(
   applicationId: string,
@@ -10,7 +19,10 @@ export async function uploadApplicationDocument(
   file: File,
 ): Promise<ApplicationDocument> {
   if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-    throw new Error("Only PDF, JPG, or PNG files are allowed.");
+    throw new Error("Only PDF, JPG, PNG, or HEIC files are allowed.");
+  }
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    throw new Error("That file is too large — please upload something under 8MB.");
   }
 
   const supabase = createAdminClient();

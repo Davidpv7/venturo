@@ -27,11 +27,11 @@ export default async function ApplicationStepPage({
   searchParams,
 }: {
   params: Promise<{ applicationId: string; step: string }>;
-  searchParams: Promise<{ error?: string; missing?: string }>;
+  searchParams: Promise<{ error?: string; missing?: string; detail?: string }>;
 }) {
   const dbUser = await requireVerifiedUser();
   const { applicationId, step } = await params;
-  const { error, missing } = await searchParams;
+  const { error, missing, detail } = await searchParams;
 
   if (!isApplicationStep(step)) notFound();
 
@@ -58,6 +58,11 @@ export default async function ApplicationStepPage({
       {error === "invalid-lease-length" && (
         <p className="mb-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
           Select one of the lease lengths offered for this room.
+        </p>
+      )}
+      {error === "upload-failed" && (
+        <p className="mb-6 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+          {detail || "That file couldn't be uploaded. Please try a different file."}
         </p>
       )}
 
@@ -255,7 +260,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
           <input
             name="primaryId"
             type="file"
-            accept="application/pdf,image/jpeg,image/png"
+            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
             className={inputClasses}
           />
         </Field>
@@ -265,7 +270,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
           <input
             name="secondaryId"
             type="file"
-            accept="application/pdf,image/jpeg,image/png"
+            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
             className={inputClasses}
           />
         </Field>
@@ -275,7 +280,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
           <input
             name="visaGrantNotice"
             type="file"
-            accept="application/pdf,image/jpeg,image/png"
+            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
             className={inputClasses}
           />
         </Field>
@@ -338,7 +343,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
           <input
             name="proofOfIncome"
             type="file"
-            accept="application/pdf,image/jpeg,image/png"
+            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
             className={inputClasses}
           />
         </Field>
@@ -348,7 +353,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
           <input
             name="enrolmentConfirmation"
             type="file"
-            accept="application/pdf,image/jpeg,image/png"
+            accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
             className={inputClasses}
           />
         </Field>
