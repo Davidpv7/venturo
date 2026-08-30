@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
-import { sendEmail, roomQuestionEmail, ADMIN_EMAIL } from "@/lib/email";
+import { sendEmail, roomQuestionEmail, getAdminEmails } from "@/lib/email";
 
 // Finds the applicant's existing in-progress application for this room, if
 // any, rather than creating a duplicate — but only among active statuses,
@@ -54,7 +54,7 @@ export async function askRoomQuestion(formData: FormData) {
     roomId,
     message,
   );
-  await sendEmail({ to: ADMIN_EMAIL, subject, html, text, replyTo: dbUser.email });
+  await sendEmail({ to: await getAdminEmails(), subject, html, text, replyTo: dbUser.email });
 
   redirect(`/rent-a-room/${homeId}/${roomId}?asked=1`);
 }

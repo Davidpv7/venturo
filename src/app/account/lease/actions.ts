@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/require-user";
+import { sendEmail, leaseSignedEmail, leaseSignedAdminEmail, getAdminEmails } from "@/lib/email";
 import type { GovernmentIdType } from "@/generated/prisma/client";
 
 const GOVERNMENT_ID_TYPES: GovernmentIdType[] = ["DRIVERS_LICENCE", "PASSPORT", "OTHER"];
@@ -17,7 +18,10 @@ export async function signLease(formData: FormData) {
   const dbUser = await requireUser();
   const contractId = formData.get("contractId") as string;
 
-  const contract = await prisma.contract.findUnique({ where: { id: contractId } });
+  const contract = await prisma.contract.findUnique({
+    where: { id: contractId },
+    include: { room: { include: { home: true } } },
+  });
 
   // Re-derive ownership and state inside the action itself — never trust
   // the page-level guard alone, since Server Actions are directly callable
@@ -83,4 +87,12 @@ export async function signLease(formData: FormData) {
   revalidatePath("/account", "layout");
   revalidatePath("/admin/homes");
   revalidatePath(`/admin/leases/${contract.id}`);
+
+  const tenantName = leaseSignedName || dbUser.name || "Tenant";
+
+  const signed = leaseSignedEmail(contract.room.title, contract.room.home.name);
+  await sendEmail({ to: dbUser.email, ...signed });
+
+  const adminAlert = leaseSignedAdminEmail(tenantName, contract.room.title, contract.room.home.name, contract.id);
+  await sendEmail({ to: await getAdminEmails(), ...adminAlert, replyTo: dbUser.email });
 }

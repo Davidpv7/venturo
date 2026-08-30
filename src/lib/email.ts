@@ -1,9 +1,9 @@
 import { Resend } from "resend";
+import { prisma } from "@/lib/prisma";
 
 // Same address already used in mailto: links on the contact page and the
-// room detail page's deposit instructions — reused here as the recipient
-// for admin alerts and as replyTo on tenant-facing emails so replies land
-// in the inbox that's already being checked.
+// room detail page's deposit instructions — kept as a last-resort fallback
+// for getAdminEmails() below, in case the ADMIN role table is ever empty.
 const ADMIN_EMAIL = "venturo.coliving@gmail.com";
 
 const FROM_EMAIL = "Venturo <info@venturocoliving.com.au>";
@@ -14,8 +14,20 @@ function getSiteUrl() {
   return "http://localhost:3000";
 }
 
+// Recipients for admin alerts: every non-deleted ADMIN-role user's real
+// email, rather than a single hardcoded inbox. Falls back to ADMIN_EMAIL
+// only if the ADMIN role table is somehow empty, so alerts never go nowhere.
+export async function getAdminEmails(): Promise<string[]> {
+  const admins = await prisma.user.findMany({
+    where: { role: "ADMIN", deletedAt: null },
+    select: { email: true },
+  });
+  const emails = admins.map((a) => a.email);
+  return emails.length > 0 ? emails : [ADMIN_EMAIL];
+}
+
 type SendEmailInput = {
-  to: string;
+  to: string | string[];
   subject: string;
   html: string;
   text: string;
@@ -122,4 +134,41 @@ export function applicationRejectedEmail(roomTitle: string, homeName: string) {
   };
 }
 
-export { ADMIN_EMAIL };
+export function applicationSubmittedEmail(roomTitle: string, homeName: string) {
+  return {
+    subject: "Your application was submitted successfully",
+    text: `Thanks for applying for ${roomTitle} at ${homeName}. We've received your application and will be in touch once it's been reviewed.`,
+    html: `<p>Thanks for applying for ${roomTitle} at ${homeName}. We've received your application and will be in touch once it's been reviewed.</p>`,
+  };
+}
+
+export function newApplicationAdminEmail(
+  applicantName: string,
+  roomTitle: string,
+  homeName: string,
+  applicationId: string,
+) {
+  const adminUrl = `${getSiteUrl()}/admin/applications/${applicationId}`;
+  return {
+    subject: `New application from ${applicantName} — ${roomTitle}`,
+    text: `${applicantName} submitted an application for ${roomTitle} at ${homeName}.\n\nReview it here: ${adminUrl}`,
+    html: `<p>${escapeHtml(applicantName)} submitted an application for <strong>${escapeHtml(roomTitle)}</strong> (${escapeHtml(homeName)}).</p><p><a href="${adminUrl}">Review it here</a></p>`,
+  };
+}
+
+export function leaseSignedEmail(roomTitle: string, homeName: string) {
+  return {
+    subject: "Your lease has been signed",
+    text: `We've received your signed lease for ${roomTitle} at ${homeName}. Thanks — we'll be in touch with next steps.`,
+    html: `<p>We've received your signed lease for ${roomTitle} at ${homeName}. Thanks — we'll be in touch with next steps.</p>`,
+  };
+}
+
+export function leaseSignedAdminEmail(tenantName: string, roomTitle: string, homeName: string, contractId: string) {
+  const adminUrl = `${getSiteUrl()}/admin/leases/${contractId}`;
+  return {
+    subject: `Lease signed by ${tenantName} — ${roomTitle}`,
+    text: `${tenantName} signed their lease for ${roomTitle} at ${homeName}.\n\nView it here: ${adminUrl}`,
+    html: `<p>${escapeHtml(tenantName)} signed their lease for <strong>${escapeHtml(roomTitle)}</strong> (${escapeHtml(homeName)}).</p><p><a href="${adminUrl}">View it here</a></p>`,
+  };
+}

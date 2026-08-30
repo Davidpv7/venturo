@@ -7,6 +7,7 @@ import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { uploadApplicationDocument, deleteApplicationDocuments } from "@/lib/application-documents";
 import { nextApplicationStep, type ApplicationStep } from "@/lib/application-steps";
 import { allowedLeaseLengths } from "@/lib/lease-lengths";
+import { sendEmail, applicationSubmittedEmail, newApplicationAdminEmail, getAdminEmails } from "@/lib/email";
 import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/prisma/client";
 
 // Every step-save action re-checks ownership and draft status itself, not
@@ -15,7 +16,7 @@ import type { ApplicationDocumentType, EmploymentStatus } from "@/generated/pris
 async function loadOwnedDraftApplication(dbUserId: string, applicationId: string) {
   const application = await prisma.application.findUniqueOrThrow({
     where: { id: applicationId },
-    include: { room: true },
+    include: { room: { include: { home: true } } },
   });
   if (application.userId !== dbUserId || application.status !== "DRAFT") {
     redirect(`/account/applications/${applicationId}`);
@@ -220,5 +221,14 @@ export async function submitApplication(formData: FormData) {
 
   revalidatePath(`/apply/${applicationId}`, "layout");
   revalidatePath("/account/applications");
+
+  const applicantName = `${application.legalFirstName} ${application.legalLastName}`.trim() || dbUser.name || "Applicant";
+
+  const submitted = applicationSubmittedEmail(application.room.title, application.room.home.name);
+  await sendEmail({ to: dbUser.email, ...submitted });
+
+  const adminAlert = newApplicationAdminEmail(applicantName, application.room.title, application.room.home.name, applicationId);
+  await sendEmail({ to: await getAdminEmails(), ...adminAlert, replyTo: dbUser.email });
+
   redirect(`/account/applications/${applicationId}`);
 }

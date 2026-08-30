@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { sendEmail, contactMessageEmail, ADMIN_EMAIL } from "@/lib/email";
+import { sendEmail, contactMessageEmail, getAdminEmails } from "@/lib/email";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function sendContactMessage(formData: FormData) {
@@ -19,7 +19,7 @@ export async function sendContactMessage(formData: FormData) {
   await prisma.contactMessage.create({ data: { name, email, message } });
 
   const { subject, html, text } = contactMessageEmail(name, email, message);
-  await sendEmail({ to: ADMIN_EMAIL, subject, html, text, replyTo: email });
+  await sendEmail({ to: await getAdminEmails(), subject, html, text, replyTo: email });
 
   redirect("/contact?sent=1");
 }
