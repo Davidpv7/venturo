@@ -71,7 +71,20 @@ export async function markRoomAvailable(formData: FormData) {
   await requireAdmin();
   const roomId = formData.get("roomId") as string;
 
-  // For a RENTED room going back on the market — e.g. a tenant moved out —
+  // A RENTED room always has a matching active Contract (set together in
+  // confirmDeposit) — it's only cleared via terminateLease or the
+  // lease-expiry cron. Flipping the room here without ending that Contract
+  // would leave a "current" tenant with no room, so this has to go through
+  // Tenants > Terminate Lease first, same reasoning as archiveRoom's
+  // active-lease guard below.
+  const activeContract = await prisma.contract.findFirst({
+    where: { roomId, endedAt: null },
+  });
+  if (activeContract) {
+    redirect("/admin/homes?error=active-lease-mark-available");
+  }
+
+  // For a RENTED room going back on the market with no tenant on file —
   // as opposed to releaseRoom, which is specifically the deposit-window-
   // expired path out of PENDING_DEPOSIT.
   await prisma.$transaction(async (tx) => {

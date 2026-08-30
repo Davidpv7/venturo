@@ -18,6 +18,8 @@ const deleteErrors: Record<string, string> = {
     "Can't permanently delete a room with lease history — restore it or leave it archived/in Trash to keep that record.",
   "active-lease":
     "This room has an active lease — terminate it from Tenants before archiving or deleting it.",
+  "active-lease-mark-available":
+    "There is a tenant currently in this room — terminate their lease from Tenants first, which will mark the room available automatically.",
   "lease-not-signed": "Can't confirm the deposit until the tenant has signed their lease.",
 };
 
