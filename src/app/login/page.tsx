@@ -7,9 +7,9 @@ import { login } from "./actions";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; deleted?: string }>;
+  searchParams: Promise<{ error?: string; deleted?: string; reset?: string }>;
 }) {
-  const { error, deleted } = await searchParams;
+  const { error, deleted, reset } = await searchParams;
 
   return (
     <div className="mx-auto flex max-w-sm flex-col px-6 py-16 sm:py-24">
@@ -19,6 +19,12 @@ export default async function LoginPage({
         {deleted && (
           <p className="mt-4 rounded-md bg-venturo-olive/10 px-3 py-2.5 text-sm text-venturo-olive">
             Your account has been deleted.
+          </p>
+        )}
+
+        {reset && (
+          <p className="mt-4 rounded-md bg-venturo-olive/10 px-3 py-2.5 text-sm text-venturo-olive">
+            Your password has been reset. Log in with your new password.
           </p>
         )}
 
@@ -35,6 +41,13 @@ export default async function LoginPage({
           <Field label="Password">
             <input name="password" type="password" required className={inputClasses} />
           </Field>
+
+          <Link
+            href="/forgot-password"
+            className="-mt-2 self-end text-xs font-medium text-venturo-olive hover:underline"
+          >
+            Forgot password?
+          </Link>
 
           <Button type="submit" className="mt-1">
             Log In

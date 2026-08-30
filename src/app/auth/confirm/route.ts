@@ -15,7 +15,16 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}?emailConfirmed=1`);
+      // Recovery doesn't need a success flag — landing on /reset-password is
+      // itself the signal, and it already has a session to act on.
+      return NextResponse.redirect(
+        type === "recovery" ? `${origin}${next}` : `${origin}${next}?emailConfirmed=1`,
+      );
+    }
+    if (type === "recovery") {
+      return NextResponse.redirect(
+        `${origin}/forgot-password?error=${encodeURIComponent("That reset link is invalid or has expired. Please request a new one.")}`,
+      );
     }
   }
 

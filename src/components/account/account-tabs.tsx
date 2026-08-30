@@ -1,10 +1,7 @@
-"use client";
+import { DashboardNav, type DashboardNavLink } from "@/components/ui/dashboard-nav";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-
-const NAV_LINKS = [
-  { href: "/account", label: "My Stay" },
+const NAV_LINKS: DashboardNavLink[] = [
+  { href: "/account", label: "My Stay", exact: true },
   { href: "/account/applications", label: "Applications" },
   { href: "/account/lease", label: "Lease Agreement" },
   { href: "/account/money", label: "My Money" },
@@ -13,36 +10,6 @@ const NAV_LINKS = [
   { href: "/account/profile", label: "Account" },
 ];
 
-function isActive(pathname: string, href: string) {
-  if (href === "/account") return pathname === "/account";
-  return pathname === href || pathname.startsWith(href + "/");
-}
-
 export function AccountTabs() {
-  const pathname = usePathname();
-
-  return (
-    <nav className="shrink-0 border-b border-venturo-olive/15 bg-venturo-cream-alt sm:w-48 sm:border-b-0 sm:border-r">
-      <ul className="flex gap-1 overflow-x-auto px-4 py-3 text-sm sm:flex-col sm:gap-0.5 sm:px-3 sm:py-6">
-        {NAV_LINKS.map((link) => {
-          const active = isActive(pathname, link.href);
-          return (
-            <li key={link.href} className="shrink-0 sm:shrink">
-              <Link
-                href={link.href}
-                className={[
-                  "flex items-center justify-between gap-2 whitespace-nowrap rounded-md px-3 py-2 font-medium transition-colors",
-                  active
-                    ? "bg-venturo-olive/10 text-venturo-olive"
-                    : "text-foreground/70 hover:bg-venturo-olive/5 hover:text-venturo-olive",
-                ].join(" ")}
-              >
-                {link.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
+  return <DashboardNav links={NAV_LINKS} />;
 }
