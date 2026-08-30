@@ -1,6 +1,6 @@
 {
   "crons": [
     { "path": "/api/cron/application-cleanup", "schedule": "0 3 * * *" },
-    { "path": "/api/cron/lease-expiry", "schedule": "0 * * * *" }
+    { "path": "/api/cron/lease-expiry", "schedule": "0 4 * * *" }
   ]
 }
