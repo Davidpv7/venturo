@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import type { Interest, Photo, Room } from "@/generated/prisma/client";
 import { formatWeeklyPrice } from "@/lib/format";
 import { allowedLeaseLengths, formatLeaseLengthOptions } from "@/lib/lease-lengths";
@@ -22,7 +23,11 @@ export function RoomCard({
 
   return (
     <div className="group overflow-hidden rounded-xl border border-venturo-olive/15 bg-white shadow-sm transition-shadow hover:shadow-md">
-      <div className="relative aspect-video overflow-hidden bg-venturo-cream-alt">
+      <Link
+        href={`/rent-a-room/${homeId}/${room.id}`}
+        aria-label={`View ${room.title}`}
+        className="relative block aspect-video overflow-hidden bg-venturo-cream-alt"
+      >
         {primaryPhoto ? (
           <Image
             src={primaryPhoto.url}
@@ -36,7 +41,7 @@ export function RoomCard({
             No photo yet
           </div>
         )}
-      </div>
+      </Link>
 
       <div className="flex flex-col gap-2 p-5">
         <div className="flex items-start justify-between gap-2">
@@ -48,11 +53,11 @@ export function RoomCard({
           )}
         </div>
         <p className="text-sm text-foreground/80 line-clamp-2">{room.subtitle ?? room.description}</p>
-        <div className="mt-1 flex items-center justify-between text-sm">
+        <div className="mt-1 flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2">
           <span className="font-medium text-venturo-olive">
             {formatWeeklyPrice(room.price)}
           </span>
-          <span className="text-foreground/60">
+          <span className="text-xs text-foreground/60 sm:text-sm">
             {formatLeaseLengthOptions(allowedLeaseLengths(room))}
           </span>
         </div>

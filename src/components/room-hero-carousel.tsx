@@ -85,7 +85,7 @@ export function RoomHeroCarousel({ homes }: { homes: HomeWithPhotosAndPrice[] })
       <div
         role="group"
         aria-roledescription="carousel"
-        className="relative h-[420px] w-full sm:h-[480px]"
+        className="relative h-[420px] w-full overflow-x-hidden sm:h-[480px]"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >

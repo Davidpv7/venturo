@@ -19,7 +19,7 @@ export function Container({
   children: React.ReactNode;
 }) {
   return (
-    <div className={["mx-auto px-6", maxWidths[size], className].filter(Boolean).join(" ")}>
+    <div className={["mx-auto w-full px-6", maxWidths[size], className].filter(Boolean).join(" ")}>
       {children}
     </div>
   );
