@@ -2,7 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { createAdminClient, APPLICATION_DOCS_BUCKET } from "@/lib/supabase/admin";
 import type { ApplicationDocument, ApplicationDocumentType } from "@/generated/prisma/client";
 
-const ALLOWED_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png"];
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/heic",
+  "image/heif",
+];
 
 export async function uploadApplicationDocument(
   applicationId: string,

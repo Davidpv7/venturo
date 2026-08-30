@@ -83,9 +83,14 @@ export async function saveApplicationIdentity(formData: FormData) {
     data: { isAustralianCitizen },
   });
 
-  await uploadIfPresent(applicationId, formData, "primaryId", "PRIMARY_ID");
-  await uploadIfPresent(applicationId, formData, "secondaryId", "SECONDARY_ID");
-  await uploadIfPresent(applicationId, formData, "visaGrantNotice", "VISA_GRANT_NOTICE");
+  try {
+    await uploadIfPresent(applicationId, formData, "primaryId", "PRIMARY_ID");
+    await uploadIfPresent(applicationId, formData, "secondaryId", "SECONDARY_ID");
+    await uploadIfPresent(applicationId, formData, "visaGrantNotice", "VISA_GRANT_NOTICE");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Upload failed.";
+    redirect(`/apply/${applicationId}/identity?error=upload-failed&message=${encodeURIComponent(message)}`);
+  }
 
   revalidatePath(`/apply/${applicationId}`, "layout");
   redirect(`/apply/${applicationId}/${nextApplicationStep("identity")}`);
@@ -107,8 +112,13 @@ export async function saveApplicationIncome(formData: FormData) {
     },
   });
 
-  await uploadIfPresent(applicationId, formData, "proofOfIncome", "PROOF_OF_INCOME");
-  await uploadIfPresent(applicationId, formData, "enrolmentConfirmation", "ENROLMENT_CONFIRMATION");
+  try {
+    await uploadIfPresent(applicationId, formData, "proofOfIncome", "PROOF_OF_INCOME");
+    await uploadIfPresent(applicationId, formData, "enrolmentConfirmation", "ENROLMENT_CONFIRMATION");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Upload failed.";
+    redirect(`/apply/${applicationId}/income?error=upload-failed&message=${encodeURIComponent(message)}`);
+  }
 
   revalidatePath(`/apply/${applicationId}`, "layout");
   redirect(`/apply/${applicationId}/${nextApplicationStep("income")}`);
