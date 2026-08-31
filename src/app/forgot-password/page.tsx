@@ -40,7 +40,11 @@ export default async function ForgotPasswordPage({
             <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
           )}
 
-          <Button type="submit" className="mt-1">
+          <Button
+            type="submit"
+            className="mt-1"
+            disabled={!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          >
             Send reset link
           </Button>
         </form>

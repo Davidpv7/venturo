@@ -34,7 +34,11 @@ export default async function LinkExpiredPage({
               <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
             </div>
           )}
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          >
             Send new link
           </Button>
         </form>

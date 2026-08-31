@@ -45,7 +45,12 @@ export default async function VerifyEmailPage({
               <TurnstileWidget siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY} />
             </div>
           )}
-          <Button type="submit" variant="secondary" className="w-full">
+          <Button
+            type="submit"
+            variant="secondary"
+            className="w-full"
+            disabled={!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          >
             Resend confirmation email
           </Button>
         </form>

@@ -61,7 +61,11 @@ export default async function ContactPage({
             appearance="always"
           />
         )}
-        <Button type="submit" className="mt-1 self-start">
+        <Button
+          type="submit"
+          className="mt-1 self-start"
+          disabled={!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+        >
           Send Message
         </Button>
       </form>
