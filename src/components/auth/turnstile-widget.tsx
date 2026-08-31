@@ -14,6 +14,7 @@ declare global {
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
+          "timeout-callback"?: () => void;
         },
       ) => string;
       remove: (widgetId: string) => void;
@@ -67,6 +68,17 @@ export function TurnstileWidget({
         // permanent — resetting retries the challenge instead of leaving
         // the button disabled with no way forward.
         "error-callback": () => {
+          setReady(false);
+          if (widgetIdRef.current && window.turnstile) {
+            window.turnstile.reset(widgetIdRef.current);
+          }
+        },
+        // A challenge that hangs instead of erroring outright (e.g. a mobile
+        // browser's tracking prevention blocking the third-party storage the
+        // managed check relies on) fires this instead of error-callback —
+        // without handling it the button stays disabled forever with no
+        // retry, which is silent and looks identical to a permanent failure.
+        "timeout-callback": () => {
           setReady(false);
           if (widgetIdRef.current && window.turnstile) {
             window.turnstile.reset(widgetIdRef.current);
