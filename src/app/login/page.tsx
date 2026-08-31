@@ -28,10 +28,20 @@ export default async function LoginPage({
           </p>
         )}
 
-        {error && (
+        {error === "email-not-confirmed" ? (
           <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
-            {error}
+            You need to confirm your email before logging in.{" "}
+            <Link href="/signup/link-expired" className="font-medium underline">
+              Resend the confirmation email
+            </Link>
+            .
           </p>
+        ) : (
+          error && (
+            <p className="mt-4 rounded-md bg-red-50 px-3 py-2.5 text-sm text-red-700">
+              {error}
+            </p>
+          )
         )}
 
         <form action={login} className="mt-6 flex flex-col gap-4">

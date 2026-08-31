@@ -26,6 +26,13 @@ export async function GET(request: NextRequest) {
         `${origin}/forgot-password?error=${encodeURIComponent("That reset link is invalid or has expired. Please request a new one.")}`,
       );
     }
+    // "email" is what a signup-confirmation link uses (this app has no
+    // magic-link flow, so it can't mean anything else) — the visitor here
+    // has no session, unlike an email-change confirmation failure below,
+    // so send them somewhere that can send a new link without one.
+    if (type === "email") {
+      return NextResponse.redirect(`${origin}/signup/link-expired`);
+    }
   }
 
   return NextResponse.redirect(`${origin}/account/profile?emailError=confirmation-failed`);
