@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireVerifiedUser } from "@/lib/require-verified-user";
 import { Card } from "@/components/ui/card";
-import { Button, ButtonLink } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, inputClasses } from "@/components/ui/field";
 import { FileUploadField } from "@/components/apply/file-upload-field";
 import {
@@ -105,7 +106,7 @@ function StepFormFooter({
           Back
         </ButtonLink>
       )}
-      <Button type="submit">Save &amp; Continue</Button>
+      <SubmitButton pendingText="Saving...">Save &amp; Continue</SubmitButton>
     </div>
   );
 }
@@ -609,7 +610,7 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
             <ButtonLink href={`/apply/${application.id}/references`} variant="secondary">
               Back
             </ButtonLink>
-            <Button type="submit">Submit Application</Button>
+            <SubmitButton pendingText="Submitting...">Submit Application</SubmitButton>
           </div>
         </form>
       </div>
