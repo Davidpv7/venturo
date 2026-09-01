@@ -319,7 +319,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
     <>
       <StepHeading
         title="Income & employment"
-        description="Upload a payslip or bank statement as proof of income — or, if you're a student, your enrolment confirmation."
+        description="Optionally upload a payslip or bank statement as proof of income — or, if you're a student, your enrolment confirmation."
       />
       <form action={saveApplicationIncome} className="flex flex-col gap-4">
         <input type="hidden" name="applicationId" value={application.id} />
@@ -359,7 +359,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
           </Field>
         </div>
 
-        <Field label="Proof of income (payslip or bank statement)">
+        <Field label="Proof of income (payslip or bank statement) (optional)">
           <FileUploadField
             name="proofOfIncome"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"
@@ -367,7 +367,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
         </Field>
         <ExistingDocumentNote application={application} type="PROOF_OF_INCOME" />
 
-        <Field label="Enrolment confirmation (students only)">
+        <Field label="Enrolment confirmation (students only) (optional)">
           <FileUploadField
             name="enrolmentConfirmation"
             accept="application/pdf,image/jpeg,image/png,image/heic,image/heif"

@@ -196,13 +196,7 @@ export async function submitApplication(formData: FormData) {
   }
   if (!hasDocument("PRIMARY_ID")) missing.push("Primary ID upload");
 
-  if (!application.employmentStatus) {
-    missing.push("Employment status");
-  } else if (application.employmentStatus === "STUDENT") {
-    if (!hasDocument("ENROLMENT_CONFIRMATION")) missing.push("Enrolment confirmation upload");
-  } else if (!hasDocument("PROOF_OF_INCOME")) {
-    missing.push("Proof of income upload");
-  }
+  if (!application.employmentStatus) missing.push("Employment status");
 
   if (!application.reference1Name) missing.push("Reference 1 name");
   if (!application.reference1Phone) missing.push("Reference 1 phone");
