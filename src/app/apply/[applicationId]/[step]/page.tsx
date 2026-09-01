@@ -6,6 +6,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Field, inputClasses } from "@/components/ui/field";
 import { FileUploadField } from "@/components/apply/file-upload-field";
+import { RetryingForm } from "@/components/apply/retrying-form";
 import {
   isApplicationStep,
   previousApplicationStep,
@@ -127,7 +128,7 @@ function PersonalStep({ application }: { application: ApplicationWithDocuments }
         title="Personal details"
         description="Tell us a bit about yourself."
       />
-      <form action={saveApplicationPersonal} className="flex flex-col gap-4">
+      <RetryingForm action={saveApplicationPersonal} className="flex flex-col gap-4">
         <input type="hidden" name="applicationId" value={application.id} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Legal first name">
@@ -198,7 +199,7 @@ function PersonalStep({ application }: { application: ApplicationWithDocuments }
         </Field>
         <LeaseLengthField application={application} />
         <StepFormFooter applicationId={application.id} step="personal" />
-      </form>
+      </RetryingForm>
     </>
   );
 }
@@ -261,7 +262,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
         title="Identity verification"
         description="Upload a primary photo ID. A secondary ID is optional."
       />
-      <form action={saveApplicationIdentity} className="flex flex-col gap-5">
+      <RetryingForm action={saveApplicationIdentity} className="flex flex-col gap-5">
         <input type="hidden" name="applicationId" value={application.id} />
 
         <fieldset className="flex flex-col gap-2">
@@ -309,7 +310,7 @@ function IdentityStep({ application }: { application: ApplicationWithDocuments }
         <ExistingDocumentNote application={application} type="SECONDARY_ID" />
 
         <StepFormFooter applicationId={application.id} step="identity" />
-      </form>
+      </RetryingForm>
     </>
   );
 }
@@ -321,7 +322,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
         title="Income & employment"
         description="Optionally upload a payslip or bank statement as proof of income — or, if you're a student, your enrolment confirmation."
       />
-      <form action={saveApplicationIncome} className="flex flex-col gap-4">
+      <RetryingForm action={saveApplicationIncome} className="flex flex-col gap-4">
         <input type="hidden" name="applicationId" value={application.id} />
         <Field label="Employment status">
           <select
@@ -376,7 +377,7 @@ function IncomeStep({ application }: { application: ApplicationWithDocuments }) 
         <ExistingDocumentNote application={application} type="ENROLMENT_CONFIRMATION" />
 
         <StepFormFooter applicationId={application.id} step="income" />
-      </form>
+      </RetryingForm>
     </>
   );
 }
@@ -388,7 +389,7 @@ function ReferencesStep({ application }: { application: ApplicationWithDocuments
         title="Rental history & references"
         description="Your previous address and one or two people we can contact as references."
       />
-      <form action={saveApplicationReferences} className="flex flex-col gap-4">
+      <RetryingForm action={saveApplicationReferences} className="flex flex-col gap-4">
         <input type="hidden" name="applicationId" value={application.id} />
         <Field label="Previous address">
           <input
@@ -490,7 +491,7 @@ function ReferencesStep({ application }: { application: ApplicationWithDocuments
         </Field>
 
         <StepFormFooter applicationId={application.id} step="references" />
-      </form>
+      </RetryingForm>
     </>
   );
 }
@@ -600,7 +601,7 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
           )}
         </div>
 
-        <form action={submitApplication} className="border-t border-venturo-olive/15 pt-6">
+        <RetryingForm action={submitApplication} className="border-t border-venturo-olive/15 pt-6">
           <input type="hidden" name="applicationId" value={application.id} />
           <p className="mb-4 text-sm text-foreground/70">
             Once submitted, you won&apos;t be able to edit this application — we&apos;ll be in
@@ -612,7 +613,7 @@ function ReviewStep({ application }: { application: ApplicationWithDocuments }) 
             </ButtonLink>
             <SubmitButton pendingText="Submitting...">Submit Application</SubmitButton>
           </div>
-        </form>
+        </RetryingForm>
       </div>
     </>
   );
