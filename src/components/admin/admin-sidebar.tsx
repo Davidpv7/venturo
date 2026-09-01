@@ -4,6 +4,7 @@ const NAV_LINKS = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/homes", label: "Homes" },
   { href: "/admin/tenants", label: "Tenants" },
+  { href: "/admin/finance", label: "Finance" },
   { href: "/admin/applications", label: "Applications" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/messages", label: "Messages" },

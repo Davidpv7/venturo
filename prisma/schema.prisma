@@ -38,15 +38,17 @@ enum Role {
 }
 
 model Home {
-  id           String    @id @default(uuid())
-  name         String
-  description  String
-  address      String
-  wifiPassword String?
-  binDay       String? // free text, e.g. "Tuesday (general), Thursday (recycling)"
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  deletedAt    DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
+  id                     String    @id @default(uuid())
+  name                   String
+  description            String
+  address                String
+  wifiPassword           String?
+  binDay                 String? // free text, e.g. "Tuesday (general), Thursday (recycling)"
+  weeklyCostCents        Int? // admin-entered weekly cost to run the house (rent/mortgage to landlord), used by /admin/finance
+  weeklyServiceCostCents Int? // admin-entered rough weekly estimate for services/utilities, used by /admin/finance
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  deletedAt              DateTime? // null = active; soft-deleted so an accidental delete is restorable from the admin Trash
 
   photos        Photo[]
   rooms         Room[]
