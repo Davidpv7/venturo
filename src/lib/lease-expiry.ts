@@ -29,7 +29,7 @@ export async function releaseExpiredPendingLeases() {
       await notifyInterestedUsers(tx, contract.roomId);
     });
 
-    const { subject, html, text } = leaseExpiredEmail(contract.room.title, contract.room.home.name);
+    const { subject, html, text } = leaseExpiredEmail(contract.user.name, contract.room.title, contract.room.home.name);
     await sendEmail({ to: contract.user.email, subject, html, text });
   }
 

@@ -115,6 +115,7 @@ export async function approveApplication(formData: FormData) {
   }
 
   const { subject, html, text } = applicationApprovedEmail(
+    application.user.name,
     application.room.title,
     application.room.home.name,
     expiresAt,
@@ -139,6 +140,7 @@ export async function rejectApplication(formData: FormData) {
   revalidatePath(`/admin/applications/${applicationId}`);
 
   const { subject, html, text } = applicationRejectedEmail(
+    application.user.name,
     application.room.title,
     application.room.home.name,
   );

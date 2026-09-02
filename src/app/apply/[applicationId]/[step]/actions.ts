@@ -218,7 +218,7 @@ export async function submitApplication(formData: FormData) {
 
   const applicantName = `${application.legalFirstName} ${application.legalLastName}`.trim() || dbUser.name || "Applicant";
 
-  const submitted = applicationSubmittedEmail(application.room.title, application.room.home.name);
+  const submitted = applicationSubmittedEmail(dbUser.name, application.room.title, application.room.home.name);
   await sendEmail({ to: dbUser.email, ...submitted });
 
   const adminAlert = newApplicationAdminEmail(applicantName, application.room.title, application.room.home.name, applicationId);

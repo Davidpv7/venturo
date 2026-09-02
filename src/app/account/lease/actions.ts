@@ -90,7 +90,7 @@ export async function signLease(formData: FormData) {
 
   const tenantName = leaseSignedName || dbUser.name || "Tenant";
 
-  const signed = leaseSignedEmail(contract.room.title, contract.room.home.name);
+  const signed = leaseSignedEmail(dbUser.name, contract.room.title, contract.room.home.name);
   await sendEmail({ to: dbUser.email, ...signed });
 
   const adminAlert = leaseSignedAdminEmail(tenantName, contract.room.title, contract.room.home.name, contract.id);

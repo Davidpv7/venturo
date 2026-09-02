@@ -13,9 +13,15 @@ export async function notifyInterestedUsers(tx: Prisma.TransactionClient, roomId
 
   if (pending.length > 0) {
     const room = await tx.room.findUniqueOrThrow({ where: { id: roomId }, include: { home: true } });
-    const { subject, html, text } = roomAvailableEmail(room.title, room.home.name, room.homeId, room.id);
 
     for (const interest of pending) {
+      const { subject, html, text } = roomAvailableEmail(
+        interest.user.name,
+        room.title,
+        room.home.name,
+        room.homeId,
+        room.id,
+      );
       await sendEmail({ to: interest.user.email, subject, html, text });
     }
 
